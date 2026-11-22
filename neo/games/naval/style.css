@@ -1,0 +1,29 @@
+/* naval */
+/* 海战棋 */
+.naval-wrapper{display:flex;flex-direction:column;gap:14px;align-items:center;width:100%}
+.naval-phase{font-size:.95rem;font-weight:800;color:#6b5636;text-align:center}
+.naval-board{display:grid;grid-template-columns:repeat(10,42px);grid-template-rows:repeat(10,42px);gap:2px;background:#c9d8e0;padding:8px;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.15)}
+@media(max-width:800px){.naval-board{grid-template-columns:repeat(10,30px);grid-template-rows:repeat(10,30px)}}
+@media(max-width:560px){.naval-board{grid-template-columns:repeat(10,24px);grid-template-rows:repeat(10,24px)}}
+.naval-cell{width:42px;height:42px;background:#eaf3f8;border-radius:4px;display:flex;justify-content:center;align-items:center;cursor:pointer;font-size:1.1rem;transition:.12s;position:relative;border:1px solid #b8c8d2}
+@media(max-width:800px){.naval-cell{width:30px;height:30px;font-size:.8rem}}
+@media(max-width:560px){.naval-cell{width:24px;height:24px;font-size:.65rem}}
+.naval-cell:hover{filter:brightness(1.05)}
+.naval-cell.wave{background:#c9e4f5}
+.naval-cell.wave::after{content:'🌊';font-size:1.1rem}
+.naval-cell.ship-red{background:#e63b2e;border-color:#a52a1f}
+.naval-cell.ship-blue{background:#2b8fd6;border-color:#1c5f8f}
+.naval-cell.hit{background:#8b1f1f;color:#fff}
+.naval-cell.hit::after{content:'💥';font-size:1.2rem}
+.naval-cell.miss{background:#7a8f9c;color:#fff}
+.naval-cell.miss::after{content:'·';font-size:1.6rem;font-weight:800;color:#fff}
+.naval-cell.sunk{background:#666;color:#fff}
+.naval-cell.sunk::after{content:'✕';font-size:1.3rem;color:#fff}
+.naval-cell.preview-valid{background:#f5c6a5}
+.naval-ships{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;justify-content:center;align-items:flex-end}
+.naval-ship-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 10px;background:#fff;border:1px solid #d9c8a9;border-radius:10px;cursor:pointer;user-select:none;font-size:.75rem;font-weight:700;color:#6b5636;transition:.15s}
+.naval-ship-item:hover{background:#fffbe8}
+.naval-ship-item.placed{opacity:.4;cursor:default}
+.naval-ship-item .ship-preview{display:grid;gap:2px}
+.naval-ship-item .cell-mini{width:12px;height:12px;background:#e63b2e;border-radius:2px}
+.naval-ship-item.blue .ship-preview .cell-mini{background:#2b8fd6}

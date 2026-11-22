@@ -1,0 +1,23 @@
+/* chess */
+/* 国际象棋 */
+.chess-wrapper{position:relative;padding:28px 0 0 28px;display:inline-block}
+.chess-board{display:grid;grid-template-columns:repeat(8,56px);grid-template-rows:repeat(8,56px);border-radius:6px;overflow:hidden;box-shadow:0 12px 30px rgba(120,90,40,.3)}
+.chess-cell{width:56px;height:56px;display:flex;justify-content:center;align-items:center;font-size:2.4rem;cursor:pointer;position:relative;transition:.15s}
+.chess-cell.light{background:#f0e6d2}.chess-cell.dark{background:#b58863}
+.chess-cell.selected{box-shadow:inset 0 0 0 4px #f1c40f}
+.chess-cell .dot{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 8px rgba(0,0,0,.4);z-index:3}
+.chess-cell .capture-ring{position:absolute;inset:4px;border-radius:50%;border:4px solid rgba(255,80,80,.7);z-index:3}
+.chess-outer-label{position:absolute;font-size:.75rem;color:#5a4020;font-weight:700}
+.chess-outer-label.top{top:6px;text-align:center}
+.chess-outer-label.left{left:6px;text-align:right}
+.chess-white-piece{color:#fff;text-shadow:0 0 2px #000,0 0 4px #000,1px 1px 0 #666,-1px -1px 0 #666,1px -1px 0 #666,-1px 1px 0 #666}
+.chess-black-piece{color:#000;text-shadow:0 0 2px #fff,1px 1px 0 #ccc,-1px -1px 0 #ccc,1px -1px 0 #ccc,-1px 1px 0 #ccc}
+.promo-panel{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:12px;background:#fff;border-radius:14px;border:2px solid #f1c40f;box-shadow:0 8px 20px rgba(0,0,0,.15);margin-top:12px}
+.promo-panel .promo-title{width:100%;text-align:center;font-weight:800;color:#6b5636;font-size:.9rem;margin-bottom:4px}
+.promo-panel .promo-btn{width:56px;height:56px;background:#f0e6d2;border:2px solid #b58863;border-radius:8px;font-size:2rem;cursor:pointer;transition:.15s;display:flex;justify-content:center;align-items:center}
+.promo-panel .promo-btn:hover{background:#fff;transform:scale(1.05)}
+
+/* 国际象棋比分（亮灰色） */
+.naval-score{display:flex;gap:16px;justify-content:center;font-weight:800;font-size:1.1rem}
+.naval-score .white{color:#dcdcdc;text-shadow:0 1px 1px rgba(0,0,0,.1)}
+.naval-score .black{color:#000}

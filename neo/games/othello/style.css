@@ -1,0 +1,10 @@
+/* othello */
+/* 黑白棋 */
+.othello-board{display:grid;grid-template-columns:repeat(8,54px);grid-template-rows:repeat(8,54px);background:#2b6a3a;border:6px solid #1e4a28;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+@media(max-width:700px){.othello-board{grid-template-columns:repeat(8,38px);grid-template-rows:repeat(8,38px)}}
+.othello-cell{display:flex;justify-content:center;align-items:center;cursor:pointer;border:1px solid #1e4a28;position:relative;transition:.15s}
+.othello-cell:hover{background:rgba(255,255,255,.08)}
+.othello-cell.valid::after{content:'';width:30%;height:30%;border-radius:50%;background:rgba(255,255,255,.4);position:absolute}
+.othello-disc{width:80%;height:80%;border-radius:50%;box-shadow:0 3px 6px rgba(0,0,0,.5);transition:transform .15s}
+.othello-disc.black{background:radial-gradient(circle at 32% 32%,#555,#000)}
+.othello-disc.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0)}

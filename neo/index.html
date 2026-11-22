@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>棋类游戏平台 5.5</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles/base.css">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">🎲 棋乐无穷 5.5</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="homeBtn" style="display:none">← 大厅</button>
+      <div class="dropdown" id="saveDropdown" style="display:none">
+        <button class="btn" id="saveBtn">💾 保存棋局</button>
+        <div class="dropdown-menu">
+          <button id="saveLocal">📁 保存到本地（生成文件）</button>
+          <button id="saveBrowser">🌐 保存到浏览器</button>
+        </div>
+      </div>
+      <div class="dropdown" id="loadDropdown">
+        <button class="btn" id="loadBtn">📂 读取棋局</button>
+        <div class="dropdown-menu">
+          <button id="loadLocal">📁 从本地文件读取</button>
+          <button id="loadBrowser">🌐 从浏览器读取</button>
+        </div>
+      </div>
+      <button class="btn" id="bgmBtn">🎵 BGM 关</button>
+    </div>
+  </div>
+  <div class="hall" id="hall">
+    <div class="hall-title">左右滑动 · 选择游戏</div>
+    <div class="entries" id="entries"></div>
+    <div id="dlcContainer"></div>
+  </div>
+  <div id="gameContainer"></div>
+</div>
+<input type="file" id="dlcFileInput" accept=".qdlc,.html,.js" multiple style="display:none">
+<input type="file" id="fileInput" accept=".json" style="display:none">
+<audio id="bgmAudio" src="忘川彼岸.mp3" loop></audio>
+<div id="cellTooltip"></div>
+<div class="loading-tip" id="loadingTip"></div>
+<script src="games/registry.js"></script>
+<script src="games/manifest.js"></script>
+<script src="games/common.js"></script>
+<script src="dlc/manifest.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

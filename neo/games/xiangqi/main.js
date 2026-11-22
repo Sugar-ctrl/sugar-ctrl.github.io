@@ -1,0 +1,207 @@
+/* xiangqi */
+(function(){
+  const { drawCrossLines, addAxisLabels, renderLog } = window.GameCommon;
+
+/* ⑧ 象棋 */
+function init(container){
+  const ROWS=10,COLS=9;
+  let board=[];
+  let cur='red',over=false,winner=null,history=[],selected=null,moves=[];
+  let log=[];
+  const RED='red',BLACK='black';
+  const isRed=p=>['车','马','相','仕','帅','炮','兵'].includes(p);
+  const isBlack=p=>['車','馬','象','士','將','砲','卒'].includes(p);
+  const owner=p=>isRed(p)?RED:(isBlack(p)?BLACK:null);
+  function initPieces(){
+    board=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+    board[9][0]='车';board[9][1]='马';board[9][2]='相';board[9][3]='仕';board[9][4]='帅';board[9][5]='仕';board[9][6]='相';board[9][7]='马';board[9][8]='车';
+    board[7][1]='炮';board[7][7]='炮';
+    for(let c=0;c<9;c+=2)board[6][c]='兵';
+    board[0][0]='車';board[0][1]='馬';board[0][2]='象';board[0][3]='士';board[0][4]='將';board[0][5]='士';board[0][6]='象';board[0][7]='馬';board[0][8]='車';
+    board[2][1]='砲';board[2][7]='砲';
+    for(let c=0;c<9;c+=2)board[3][c]='卒';
+  }
+  initPieces();
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🀄 象棋 · 楚河汉界</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">红先黑后, 点击己方棋子选中, 再点击目标位置移动。车走直线, 马走日, 象走田, 士走斜, 炮翻山, 兵过河。将帅不能碰面。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="xqStatus">🔴 红方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="xqLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="xqResign">🏳️ 投降</button>
+          <button class="act" id="xqSettle">📊 结算</button>
+          <button class="act" id="xqUndo">↩️ 悔棋</button>
+          <button class="act" id="xqRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="xqWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('xqWrap'),statusEl=document.getElementById('xqStatus');
+  const CELL=52,PAD=50;
+  const W=(COLS-1)*CELL+PAD*2, H=(ROWS-1)*CELL+PAD*2;
+  function render(){
+    wrap.innerHTML='';
+    const b=document.createElement('div');b.className='xq-board';
+    b.style.width=W+'px';b.style.height=H+'px';
+    b.style.position='relative';
+    const svgNS='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(svgNS,'svg');
+    svg.setAttribute('width',W);svg.setAttribute('height',H);
+    svg.style.position='absolute';svg.style.left='0';svg.style.top='0';svg.style.pointerEvents='none';svg.style.zIndex='1';
+    const drawLine=(r1,c1,r2,c2)=>{
+      const line=document.createElementNS(svgNS,'line');
+      line.setAttribute('x1',PAD+c1*CELL);line.setAttribute('y1',PAD+r1*CELL);
+      line.setAttribute('x2',PAD+c2*CELL);line.setAttribute('y2',PAD+r2*CELL);
+      line.setAttribute('stroke','#5a4020');line.setAttribute('stroke-width','2');
+      svg.appendChild(line);
+    };
+    for(let r=0;r<ROWS;r++)drawLine(r,0,r,COLS-1);
+    for(let c=0;c<COLS;c++)drawLine(0,c,ROWS-1,c);
+    drawLine(0,3,2,5);drawLine(0,5,2,3);drawLine(1,3,1,5);drawLine(0,4,2,4);
+    drawLine(7,3,9,5);drawLine(7,5,9,3);drawLine(8,3,8,5);drawLine(7,4,9,4);
+    b.appendChild(svg);
+    const river=document.createElement('div');
+    river.style.position='absolute';river.style.top=(PAD+4.5*CELL-12)+'px';river.style.left='50%';
+    river.style.transform='translateX(-50%)';river.style.color='#8b6b3d';
+    river.style.fontSize='1.1rem';river.style.letterSpacing='3px';river.style.fontWeight='800';
+    river.style.opacity='.6';river.style.whiteSpace='nowrap';river.style.zIndex='2';
+    river.textContent='楚河  汉界';b.appendChild(river);
+    for(let c=0;c<COLS;c++){
+      const lbl=document.createElement('div');lbl.className='axis-label';
+      lbl.textContent=c+1;lbl.style.left=(PAD+c*CELL-10)+'px';lbl.style.top=(PAD-30)+'px';
+      lbl.style.width='20px';lbl.style.textAlign='center';b.appendChild(lbl);
+    }
+    for(let r=0;r<ROWS;r++){
+      const lbl=document.createElement('div');lbl.className='axis-label';
+      lbl.textContent=r+1;lbl.style.left=(PAD-30)+'px';lbl.style.top=(PAD+r*CELL-8)+'px';
+      lbl.style.width='20px';lbl.style.textAlign='right';b.appendChild(lbl);
+    }
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const pt=document.createElement('div');pt.className='xq-point';
+      pt.style.left=(PAD+c*CELL-CELL/2)+'px';pt.style.top=(PAD+r*CELL-CELL/2)+'px';
+      pt.style.width=CELL+'px';pt.style.height=CELL+'px';
+      const p=board[r][c];
+      if(p){const isR=isRed(p);pt.innerHTML=`<div class="xq-piece ${isR?'red':'black'}">${p}</div>`;}
+      if(selected&&selected[0]===r&&selected[1]===c)pt.classList.add('selected');
+      if(moves.some(([mr,mc])=>mr===r&&mc===c))pt.innerHTML+='<div class="move-dot"></div>';
+      pt.onclick=()=>click(r,c);b.appendChild(pt);
+    }
+    wrap.appendChild(b);
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(cur==='red'?'🔴 红方走棋':'⚫ 黑方走棋');
+    renderLog('xqLog',log);
+  }
+  function click(r,c){
+    if(over)return;
+    if(selected){
+      const[sr,sc]=selected;
+      if(moves.some(([mr,mc])=>mr===r&&mc===c)){
+        history.push({board:board.map(x=>x.slice()),cur,over,winner,selected,moves,log:log.slice()});
+        const moving=board[sr][sc];
+        const captured=board[r][c];
+        board[r][c]=moving;board[sr][sc]=null;
+        let text=`${isRed(moving)?'🔴 红方':'⚫ 黑方'} ${moving} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+        if(captured) text += ` 吃 ${isRed(captured)?'🔴 红方':'⚫ 黑方'} ${captured}`;
+        log.push(text);
+        selected=null;moves=[];
+        if(captured==='帅'){over=true;winner='黑方胜';log.push('🏆 '+winner);}
+        else if(captured==='將'){over=true;winner='红方胜';log.push('🏆 '+winner);}
+        else cur=cur==='red'?'black':'red';
+        render();return;
+      }
+      selected=null;moves=[];render();
+    }else{
+      const p=board[r][c];
+      if(p&&owner(p)===cur){
+        selected=[r,c];moves=[];
+        for(let rr=0;rr<ROWS;rr++)for(let cc=0;cc<COLS;cc++){
+          if(canMove(r,c,rr,cc))moves.push([rr,cc]);
+        }
+        render();
+      }
+    }
+  }
+  function canMove(sr,sc,tr,tc){
+    if(sr===tr&&sc===tc)return false;
+    const p=board[sr][sc];if(!p)return false;
+    const target=board[tr][tc];
+    if(target&&owner(target)===owner(p))return false;
+    const dr=tr-sr,dc=tc-sc;
+    const isR=isRed(p);
+    switch(p){
+      case '车':case '車':{
+        if(dr!==0&&dc!==0)return false;
+        if(dr===0){const step=Math.sign(dc);for(let c=sc+step;c!==tc;c+=step)if(board[sr][c])return false;}
+        else{const step=Math.sign(dr);for(let r=sr+step;r!==tr;r+=step)if(board[r][sc])return false;}
+        return true;
+      }
+      case '马':case '馬':{
+        if(!((Math.abs(dr)===2&&Math.abs(dc)===1)||(Math.abs(dr)===1&&Math.abs(dc)===2)))return false;
+        if(Math.abs(dr)===2){if(board[sr+Math.sign(dr)][sc])return false;}
+        else{if(board[sr][sc+Math.sign(dc)])return false;}
+        return true;
+      }
+      case '相':case '象':{
+        if(Math.abs(dr)!==2||Math.abs(dc)!==2)return false;
+        if(board[sr+dr/2][sc+dc/2])return false;
+        if(isR&&tr<5)return false;
+        if(!isR&&tr>4)return false;
+        return true;
+      }
+      case '仕':case '士':{
+        if(Math.abs(dr)!==1||Math.abs(dc)!==1)return false;
+        if(isR){if(tr<7||tr>9||tc<3||tc>5)return false;}
+        else{if(tr<0||tr>2||tc<3||tc>5)return false;}
+        return true;
+      }
+      case '帅':case '將':{
+        if(Math.abs(dr)+Math.abs(dc)===1){
+          if(isR){if(tr<7||tr>9||tc<3||tc>5)return false;}
+          else{if(tr<0||tr>2||tc<3||tc>5)return false;}
+          return true;
+        }
+        if(dc===0){
+          const r1=Math.min(sr,tr),r2=Math.max(sr,tr);
+          let clear=true;
+          for(let r=r1+1;r<r2;r++)if(board[r][sc]){clear=false;break;}
+          if(clear){const t=board[tr][tc];if(t==='帅'||t==='將')return true;}
+        }
+        return false;
+      }
+      case '炮':case '砲':{
+        if(dr!==0&&dc!==0)return false;
+        let cnt=0;
+        if(dr===0){const step=Math.sign(dc);for(let c=sc+step;c!==tc;c+=step)if(board[sr][c])cnt++;}
+        else{const step=Math.sign(dr);for(let r=sr+step;r!==tr;r+=step)if(board[r][sc])cnt++;}
+        if(target)return cnt===1;
+        return cnt===0;
+      }
+      case '兵':case '卒':{
+        if(isR){
+          if(dr===-1&&dc===0)return true;
+          if(sr<=4&&dr===0&&Math.abs(dc)===1)return true;
+        }else{
+          if(dr===1&&dc===0)return true;
+          if(sr>=5&&dr===0&&Math.abs(dc)===1)return true;
+        }
+        return false;
+      }
+    }
+    return false;
+  }
+  document.getElementById('xqResign').onclick=()=>{if(over)return;over=true;winner=cur==='red'?'黑方胜(红投降)':'红方胜(黑投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('xqSettle').onclick=()=>{if(over)return;over=true;winner='结算：未分胜负';log.push('📊 结算');render();};
+  document.getElementById('xqUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=s.selected;moves=s.moves;log=s.log;render();};
+  document.getElementById('xqRestart').onclick=()=>{initPieces();cur='red';over=false;winner=null;history=[];selected=null;moves=[];log=[];render();};
+  const getState =()=>({game:'xiangqi',board,cur,over,winner,log});
+  const setState =(s)=>{board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=null;moves=[];log=s.log||[];history=[];render();};
+  render();
+  return { getState, setState };
+}
+
+  window.__games = window.__games || {};
+  window.__games['xiangqi'] = { init };
+})();

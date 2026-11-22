@@ -1,0 +1,24 @@
+/* backgammon */
+/* 双陆棋 */
+.backgammon-board{display:flex;background:#8b5a2b;border:8px solid #5a3a1a;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.4);padding:8px;position:relative;gap:4px}
+.backgammon-half{display:grid;grid-template-columns:repeat(6,58px);grid-template-rows:repeat(2,1fr);gap:2px;width:352px;height:340px}
+@media(max-width:800px){.backgammon-half{grid-template-columns:repeat(6,42px);width:258px;height:250px}}
+.backgammon-point{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;border:1px solid #5a3a1a;overflow:hidden}
+.backgammon-point.bottom{justify-content:flex-end}
+.backgammon-point.dark-tri{background:linear-gradient(180deg,#2a1a0a,#4a2a1a)}
+.backgammon-point.light-tri{background:linear-gradient(180deg,#f0e6d2,#c8b898)}
+.backgammon-point.dark-tri.bottom{background:linear-gradient(0deg,#2a1a0a,#4a2a1a)}
+.backgammon-point.light-tri.bottom{background:linear-gradient(0deg,#f0e6d2,#c8b898)}
+.backgammon-point.highlight{outline:3px solid #f1c40f;outline-offset:-3px;z-index:3}
+.backgammon-point .checker{width:70%;height:24px;border-radius:50%;margin:1px 0;box-shadow:0 2px 4px rgba(0,0,0,.5);display:flex;justify-content:center;align-items:center;font-size:.7rem;font-weight:800;color:#fff}
+.backgammon-point .checker.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0);color:#333}
+.backgammon-point .checker.black{background:radial-gradient(circle at 32% 32%,#555,#000)}
+.backgammon-bar{width:24px;background:#5a3a1a;border-radius:6px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;padding:4px}
+.backgammon-bar .checker{width:20px;height:20px;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.5);margin:1px 0}
+.backgammon-bar .checker.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0)}
+.backgammon-bar .checker.black{background:radial-gradient(circle at 32% 32%,#555,#000)}
+.backgammon-dice{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.backgammon-die{width:48px;height:48px;background:#fff;border-radius:10px;display:flex;justify-content:center;align-items:center;font-size:1.8rem;font-weight:800;color:#3a3226;border:2px solid #d9c8a9;cursor:pointer;box-shadow:0 4px 8px rgba(0,0,0,.15)}
+.backgammon-die.used{opacity:.35;text-decoration:line-through}
+.backgammon-die:not(.used):hover{background:#fffbe8}
+.backgammon-info{font-size:.85rem;color:#6b5636;text-align:center;line-height:1.6}

@@ -1,0 +1,7 @@
+/* tictactoe */
+/* 井字棋 */
+.ttt-board{display:grid;grid-template-columns:repeat(3,96px);grid-template-rows:repeat(3,96px);gap:6px;background:#e8b86d;padding:14px;border-radius:14px;box-shadow:0 10px 30px rgba(120,90,40,.3)}
+.ttt-cell{background:#f7f3ec;border-radius:10px;display:flex;justify-content:center;align-items:center;cursor:pointer;font-size:3.6rem;font-weight:800;transition:.15s;border:2px solid #d9c8a9}
+.ttt-cell:hover{background:#fff}
+.ttt-cell.x{color:#d67b4a}.ttt-cell.o{color:#5b8bb0}
+.ttt-cell.win{background:#fef3c7;border-color:#f1c40f}
