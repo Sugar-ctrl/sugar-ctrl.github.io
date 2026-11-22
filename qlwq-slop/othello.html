@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>黑白棋</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+body{background:#f7f5f0;color:#3a3226;display:flex;justify-content:center;padding:14px}
+.app{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.4rem;color:#6b5636;font-weight:800}
+.game-body{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.sidebar{flex:0 0 280px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:800px){.sidebar{flex:1 1 100%}}
+.panel{background:#fff;border:1px solid #ede3d0;border-radius:18px;padding:16px;box-shadow:0 4px 12px rgba(150,130,90,.06)}
+.panel h4{font-size:.8rem;color:#a89878;font-weight:700;margin-bottom:10px;letter-spacing:1.5px}
+.rule-text{font-size:.82rem;line-height:1.7;color:#6b5636;max-height:200px;overflow-y:auto}
+.status-text{font-size:1.1rem;font-weight:800;color:#8b6b3d;text-align:center;padding:8px 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.act{flex:1 0 100px;background:#fff;border:1px solid #d9c8a9;color:#6b5636;padding:10px 8px;border-radius:12px;font-size:.8rem;cursor:pointer;font-weight:600}
+.act:hover{background:#f0e6d2}
+.board-wrap{flex:1 1 480px;display:flex;justify-content:center;align-items:center;background:#fff;border:1px solid #ede3d0;border-radius:22px;padding:24px;box-shadow:0 6px 20px rgba(150,130,90,.08);overflow:auto}
+.naval-log{max-height:140px;overflow-y:auto;font-size:.78rem;color:#6b5636;line-height:1.6}
+.naval-log div{padding:2px 0;border-bottom:1px dashed #f0e6d2}
+.othello-board{display:grid;grid-template-columns:repeat(8,54px);grid-template-rows:repeat(8,54px);background:#2b6a3a;border:6px solid #1e4a28;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+@media(max-width:700px){.othello-board{grid-template-columns:repeat(8,38px);grid-template-rows:repeat(8,38px)}}
+.othello-cell{display:flex;justify-content:center;align-items:center;cursor:pointer;border:1px solid #1e4a28;position:relative;transition:.15s}
+.othello-cell:hover{background:rgba(255,255,255,.08)}
+.othello-cell.valid::after{content:'';width:30%;height:30%;border-radius:50%;background:rgba(255,255,255,.4);position:absolute}
+.othello-disc{width:80%;height:80%;border-radius:50%;box-shadow:0 3px 6px rgba(0,0,0,.5);transition:transform .15s}
+.othello-disc.black{background:radial-gradient(circle at 32% 32%,#555,#000)}
+.othello-disc.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>⚫ 黑白棋 · 8×8 翻转</h1>
+  <div class="game-body">
+    <div class="sidebar">
+      <div class="panel"><h4>规则</h4><div class="rule-text">黑先白后。落子后，在任意方向上夹住对方棋子（两端为己方），被夹住的对方棋子翻转为己方。无子可下时跳过。棋盘下满或双方都无子可下时，棋子多者获胜。</div></div>
+      <div class="panel"><h4>状态</h4><div class="status-text" id="otStatus">⚫ 黑方走棋</div></div>
+      <div class="panel"><h4>日志</h4><div class="naval-log" id="otLog"></div></div>
+      <div class="panel"><h4>功能</h4><div class="actions">
+        <button class="act" id="otResign">🏳️ 投降</button>
+        <button class="act" id="otSettle">📊 结算</button>
+        <button class="act" id="otUndo">↩️ 悔棋</button>
+        <button class="act" id="otRestart">🔄 重开</button>
+      </div></div>
+    </div>
+    <div class="board-wrap" id="otWrap"></div>
+  </div>
+</div>
+<script>
+const SIZE=8;
+let board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+board[3][3]='white';board[3][4]='black';board[4][3]='black';board[4][4]='white';
+let cur='black',over=false,winner=null,history=[],log=[];
+const wrap=document.getElementById('otWrap'),statusEl=document.getElementById('otStatus');
+const DIRS=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+function getFlips(r,c,color){
+  if(board[r][c])return[];
+  const opp=color==='black'?'white':'black',flips=[];
+  for(const[dr,dc]of DIRS){
+    const line=[];let nr=r+dr,nc=c+dc;
+    while(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]===opp){line.push([nr,nc]);nr+=dr;nc+=dc;}
+    if(line.length>0&&nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]===color)flips.push(...line);
+  }
+  return flips;
+}
+function validMoves(color){
+  const moves=[];
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(getFlips(r,c,color).length>0)moves.push([r,c]);
+  return moves;
+}
+function renderLog(){document.getElementById('otLog').innerHTML=log.slice(-15).map(l=>'<div>'+l+'</div>').join('');}
+function render(){
+  const b=document.createElement('div');b.className='othello-board';
+  const valids=validMoves(cur);
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    const cell=document.createElement('div');cell.className='othello-cell';
+    if(valids.some(([vr,vc])=>vr===r&&vc===c))cell.classList.add('valid');
+    const v=board[r][c];
+    if(v){const disc=document.createElement('div');disc.className='othello-disc '+v;cell.appendChild(disc);}
+    cell.onclick=()=>place(r,c);b.appendChild(cell);
+  }
+  wrap.innerHTML='';wrap.appendChild(b);
+  let blackCount=0,whiteCount=0;
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    if(board[r][c]==='black')blackCount++;else if(board[r][c]==='white')whiteCount++;
+  }
+  if(over)statusEl.textContent='🏆 '+(winner||'结束');
+  else statusEl.textContent=(cur==='black'?'⚫ 黑方走棋':'⚪ 白方走棋')+` (黑${blackCount} 白${whiteCount})`;
+  renderLog();
+}
+function place(r,c){
+  if(over)return;
+  const flips=getFlips(r,c,cur);
+  if(flips.length===0)return;
+  history.push({board:board.map(row=>row.slice()),cur,over,winner,log:log.slice()});
+  board[r][c]=cur;
+  for(const[fr,fc]of flips)board[fr][fc]=cur;
+  log.push(`${cur==='black'?'⚫ 黑方':'⚪ 白方'} (${r+1},${c+1}) 翻${flips.length}子`);
+  const nextColor=cur==='black'?'white':'black';
+  if(validMoves(nextColor).length===0){
+    if(validMoves(cur).length===0){
+      over=true;
+      let bc=0,wc=0;
+      for(let rr=0;rr<SIZE;rr++)for(let cc=0;cc<SIZE;cc++){
+        if(board[rr][cc]==='black')bc++;else if(board[rr][cc]==='white')wc++;
+      }
+      if(bc>wc)winner=`黑方获胜(黑${bc} vs 白${wc})`;
+      else if(wc>bc)winner=`白方获胜(黑${bc} vs 白${wc})`;
+      else winner=`平局(双方各${bc})`;
+      log.push('🏆 '+winner);render();return;
+    }
+    log.push(`${nextColor==='black'?'⚫ 黑方':'⚪ 白方'} 无子可下, 跳过`);
+    render();return;
+  }
+  cur=nextColor;render();
+}
+document.getElementById('otResign').onclick=()=>{if(over)return;over=true;winner=cur==='black'?'白方胜(黑投降)':'黑方胜(白投降)';log.push('🏳️ '+winner);render();};
+document.getElementById('otSettle').onclick=()=>{
+  if(over)return;
+  let bc=0,wc=0;
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    if(board[r][c]==='black')bc++;else if(board[r][c]==='white')wc++;
+  }
+  over=true;
+  if(bc>wc)winner=`黑方获胜(黑${bc} vs 白${wc})`;
+  else if(wc>bc)winner=`白方获胜(黑${bc} vs 白${wc})`;
+  else winner=`平局(双方各${bc})`;
+  log.push('📊 '+winner);render();
+};
+document.getElementById('otUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;log=s.log;render();};
+document.getElementById('otRestart').onclick=()=>{
+  board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+  board[3][3]='white';board[3][4]='black';board[4][3]='black';board[4][4]='white';
+  cur='black';over=false;winner=null;history=[];log=[];render();
+};
+render();
+</script>
+</body>
+</html>

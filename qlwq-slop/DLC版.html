@@ -1,0 +1,3779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>棋乐无穷 5.5 · DLC扩展包</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#f7f5f0;color:#3a3226;min-height:100vh;display:flex;justify-content:center;padding:14px}
+.app{width:100%;max-width:1220px;display:flex;flex-direction:column;gap:18px}
+.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.logo{font-size:1.7rem;font-weight:800;color:#8b6b3d;letter-spacing:3px}
+.btn{background:#fff;border:1px solid #d9c8a9;color:#6b5636;padding:8px 20px;border-radius:40px;cursor:pointer;font-size:.9rem;transition:.2s;box-shadow:0 2px 6px rgba(150,130,90,.1)}
+.btn:hover{background:#f0e6d2}
+.btn.primary{background:#8b6b3d;color:#fff;border-color:#8b6b3d}
+.btn.primary:hover{background:#7a5c2e}
+.hall{display:flex;flex-direction:column;gap:14px}
+.hall-title{font-size:.9rem;color:#a89878;letter-spacing:1px}
+.entries{display:flex;gap:18px;overflow-x:auto;padding:16px 6px 24px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.entries::-webkit-scrollbar{height:8px}
+.entries::-webkit-scrollbar-thumb{background:#d9c8a9;border-radius:10px}
+.entry{scroll-snap-align:start;flex:0 0 170px;height:480px;background:#fff;border-radius:24px;padding:24px 16px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:all .3s cubic-bezier(.2,.9,.3,1.2);opacity:.55;box-shadow:0 4px 12px rgba(150,130,90,.1);border:2px solid transparent;position:relative;overflow:hidden;text-align:center}
+.entry:hover{opacity:.85;transform:translateY(-4px)}
+.entry.active{opacity:1;transform:translateY(-10px) scale(1.02);box-shadow:0 20px 40px rgba(120,95,55,.25),0 8px 16px rgba(120,95,55,.2);border-color:#c9b48e;}
+.entry.active::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.4),transparent);pointer-events:none}
+.entry .ico{font-size:4rem;line-height:1;margin-top:40px;display:flex;justify-content:center;align-items:center}
+.entry .nm{font-size:1.3rem;font-weight:800;color:#6b5636}
+.entry .sub{font-size:.8rem;color:#a89878;background:#f7f3ec;padding:6px 14px;border-radius:20px;display:inline-block;margin-bottom:30px}
+.icon-circle-x{width:48px;height:48px;border-radius:50%;background:#6b5636;position:relative;display:flex;justify-content:center;align-items:center;color:#f7f3ec;font-weight:800;font-size:1.6rem;box-shadow:0 3px 6px rgba(0,0,0,.2)}
+.icon-othello{width:48px;height:48px;border-radius:50%;background:linear-gradient(90deg,#111 50%,#fff 50%);border:2px solid #8b6b3d;box-shadow:0 3px 6px rgba(0,0,0,.2)}
+.game-page{display:none;flex-direction:column;gap:16px}
+.game-page.active{display:flex}
+.game-head{display:flex;justify-content:space-between;align-items:center}
+.game-title{font-size:1.3rem;font-weight:800;color:#6b5636}
+.game-body{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.sidebar{flex:0 0 280px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:800px){.sidebar{flex:1 1 100%}}
+.panel{background:#fff;border:1px solid #ede3d0;border-radius:18px;padding:16px;box-shadow:0 4px 12px rgba(150,130,90,.06)}
+.panel h4{font-size:.8rem;color:#a89878;font-weight:700;margin-bottom:10px;letter-spacing:1.5px;text-transform:uppercase}
+.rule-text{font-size:.82rem;line-height:1.7;color:#6b5636;max-height:200px;overflow-y:auto}
+.status-text{font-size:1.1rem;font-weight:800;color:#8b6b3d;text-align:center;padding:8px 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.act{flex:1 0 100px;background:#fff;border:1px solid #d9c8a9;color:#6b5636;padding:10px 8px;border-radius:12px;font-size:.8rem;cursor:pointer;transition:.15s;font-weight:600}
+.act:hover{background:#f0e6d2}
+.act:disabled{opacity:.3;cursor:not-allowed}
+.board-wrap{flex:1 1 480px;min-height:420px;display:flex;justify-content:center;align-items:center;background:#fff;border:1px solid #ede3d0;border-radius:22px;padding:24px;box-shadow:0 6px 20px rgba(150,130,90,.08);overflow:auto}
+.naval-log{max-height:140px;overflow-y:auto;font-size:.78rem;color:#6b5636;line-height:1.6}
+.naval-log div{padding:2px 0;border-bottom:1px dashed #f0e6d2}
+.cross-board{position:relative;background:#e8b86d;border-radius:8px;box-shadow:0 10px 30px rgba(120,90,40,.3);user-select:none}
+.cross-board .line{position:absolute;background:#5a4020;pointer-events:none}
+.cross-point{display:flex;justify-content:center;align-items:center;cursor:pointer;position:absolute;z-index:2}
+.cross-point .stone{width:30px;height:30px;border-radius:50%;box-shadow:0 3px 6px rgba(0,0,0,.35);transition:transform .15s}
+.cross-point:hover .stone{transform:scale(1.05)}
+.stone.black{background:radial-gradient(circle at 32% 32%,#666,#0a0a0a)}
+.stone.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0)}
+.cross-point .star{width:8px;height:8px;background:#5a4020;border-radius:50%;position:absolute;z-index:1}
+.axis-label{position:absolute;font-size:.7rem;color:#5a4020;font-weight:700;z-index:1;pointer-events:none}
+.ttt-board{display:grid;grid-template-columns:repeat(3,96px);grid-template-rows:repeat(3,96px);gap:6px;background:#e8b86d;padding:14px;border-radius:14px;box-shadow:0 10px 30px rgba(120,90,40,.3)}
+.ttt-cell{background:#f7f3ec;border-radius:10px;display:flex;justify-content:center;align-items:center;cursor:pointer;font-size:3.6rem;font-weight:800;transition:.15s;border:2px solid #d9c8a9}
+.ttt-cell:hover{background:#fff}
+.ttt-cell.x{color:#d67b4a}.ttt-cell.o{color:#5b8bb0}
+.ttt-cell.win{background:#fef3c7;border-color:#f1c40f}
+.checkers-board{display:grid;grid-template-columns:repeat(8,58px);grid-template-rows:repeat(8,58px);border:4px solid #5a4020;border-radius:6px;overflow:hidden;box-shadow:0 12px 30px rgba(120,90,40,.3)}
+@media(max-width:700px){.checkers-board{grid-template-columns:repeat(8,40px);grid-template-rows:repeat(8,40px)}}
+.checkers-cell{display:flex;justify-content:center;align-items:center;cursor:pointer;position:relative}
+.checkers-cell.light{background:#f0e6d2}
+.checkers-cell.dark{background:#8b6b3d}
+.checkers-cell.highlight{box-shadow:inset 0 0 0 4px #f1c40f}
+.checkers-piece{width:74%;height:74%;border-radius:50%;box-shadow:0 3px 6px rgba(0,0,0,.4);display:flex;justify-content:center;align-items:center;font-size:1.2rem;font-weight:800;color:#fff;transition:.15s}
+.checkers-piece.red{background:radial-gradient(circle at 32% 32%,#e74c3c,#8b1f1f);border:2px solid #fff}
+.checkers-piece.black{background:radial-gradient(circle at 32% 32%,#555,#111);border:2px solid #fff}
+.checkers-piece.king::after{content:'♛';font-size:1rem}
+.checkers-piece.selected{transform:scale(1.1);box-shadow:0 0 0 4px #f1c40f,0 4px 10px rgba(0,0,0,.5)}
+.othello-board{display:grid;grid-template-columns:repeat(8,54px);grid-template-rows:repeat(8,54px);background:#2b6a3a;border:6px solid #1e4a28;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+@media(max-width:700px){.othello-board{grid-template-columns:repeat(8,38px);grid-template-rows:repeat(8,38px)}}
+.othello-cell{display:flex;justify-content:center;align-items:center;cursor:pointer;border:1px solid #1e4a28;position:relative;transition:.15s}
+.othello-cell:hover{background:rgba(255,255,255,.08)}
+.othello-cell.valid::after{content:'';width:30%;height:30%;border-radius:50%;background:rgba(255,255,255,.4);position:absolute}
+.othello-disc{width:80%;height:80%;border-radius:50%;box-shadow:0 3px 6px rgba(0,0,0,.5);transition:transform .15s}
+.othello-disc.black{background:radial-gradient(circle at 32% 32%,#555,#000)}
+.othello-disc.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0)}
+.ludo-board{display:flex;flex-direction:column;gap:16px;align-items:center;width:100%}
+.ludo-canvas{position:relative;width:700px;height:700px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);border:2px solid #e8e0d0;overflow:hidden}
+@media(max-width:820px){.ludo-canvas{width:520px;height:520px}}
+@media(max-width:560px){.ludo-canvas{width:380px;height:380px}}
+.ludo-hangar{position:absolute;border-radius:10px;z-index:4;padding:3%;box-sizing:border-box}
+.ludo-hangar.red{background:#e63b2e}.ludo-hangar.blue{background:#2b8fd6}
+.ludo-hangar.green{background:#2b9c4a}.ludo-hangar.yellow{background:#f5d233}
+.ludo-hangar .slot{position:absolute;width:38%;height:38%;border-radius:50%;background:rgba(255,255,255,.85);display:flex;justify-content:center;align-items:center;cursor:pointer;transition:.15s;border:2px solid rgba(0,0,0,.1)}
+.ludo-hangar .slot:hover{transform:scale(1.1);background:#fff}
+.ludo-hangar .slot.s1{left:6%;top:6%}.ludo-hangar .slot.s2{right:6%;top:6%}
+.ludo-hangar .slot.s3{left:6%;bottom:6%}.ludo-hangar .slot.s4{right:6%;bottom:6%}
+.ludo-hangar .slot .piece{width:80%;height:80%;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.ludo-hangar .slot.empty{background:rgba(255,255,255,.5)}
+.ludo-cell{position:absolute;width:4.2%;height:4.2%;border-radius:4px;background:#ccc;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:3;border:1.5px solid rgba(0,0,0,.18);transition:.15s}
+.ludo-cell:hover{transform:scale(1.15);z-index:10}
+.ludo-cell.color-red{background:#e63b2e}.ludo-cell.color-blue{background:#2b8fd6}
+.ludo-cell.color-green{background:#2b9c4a}.ludo-cell.color-yellow{background:#f5d233}
+.ludo-cell .dot{width:55%;height:55%;border-radius:50%;background:#fff;box-shadow:inset 0 1px 2px rgba(0,0,0,.15)}
+.ludo-cell .piece{width:82%;height:82%;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.5);position:absolute;z-index:5;transition:all .2s}
+.ludo-cell .piece.multi{width:50%;height:50%}
+.ludo-cell .piece.multi:nth-child(1){top:5%;left:5%;}
+.ludo-cell .piece.multi:nth-child(2){top:5%;right:5%;}
+.ludo-cell .piece.multi:nth-child(3){bottom:5%;left:5%;}
+.ludo-cell .piece.multi:nth-child(4){bottom:5%;right:5%;}
+.ludo-cell .multi-count{position:absolute;font-size:.7rem;color:#fff;font-weight:800;text-shadow:0 1px 2px #000;bottom:-14px;z-index:10;white-space:nowrap;background:rgba(0,0,0,.7);padding:2px 4px;border-radius:4px;pointer-events:none;opacity:0;transition:.2s}
+.ludo-cell:hover .multi-count{opacity:1}
+.ludo-cell .fly-mark{font-size:.8rem;color:#fff;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.ludo-cell.start-cell{box-shadow:0 0 0 2px #333,0 0 0 4px #fff}
+.ludo-cell.home-gate{box-shadow:0 0 0 3px #8b6b3d}
+.ludo-arm{position:absolute;width:4.2%;height:4.2%;border-radius:4px;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:3;border:1.5px solid rgba(0,0,0,.15)}
+.ludo-arm:hover{transform:scale(1.15);z-index:10}
+.ludo-arm.color-red{background:#f7c0ba}.ludo-arm.color-blue{background:#bfd9f0}
+.ludo-arm.color-green{background:#bfe0c5}.ludo-arm.color-yellow{background:#f5eeb8}
+.ludo-arm .piece{width:82%;height:82%;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.5);position:absolute;z-index:5}
+.ludo-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11%;height:11%;border-radius:50%;background:conic-gradient(#e63b2e 0 25%,#2b8fd6 0 50%,#2b9c4a 0 75%,#f5d233 0);border:3px solid #fff;display:flex;justify-content:center;align-items:center;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.ludo-center::after{content:'🏁';font-size:1.4rem;background:#fff;width:44%;height:44%;border-radius:50%;display:flex;justify-content:center;align-items:center;position:absolute}
+.ludo-center .piece{width:18%;height:18%;border-radius:50%;border:2px solid #fff;position:absolute;z-index:6}
+.ludo-players{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.ludo-player{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:14px;background:#fff;border:2px solid #ede3d0;transition:.2s}
+.ludo-player.active{border-color:#f1c40f;background:#fffbe8;box-shadow:0 6px 16px rgba(241,196,15,.25)}
+.ludo-player.resigned{opacity:.5;background:#f5f5f5}
+.ludo-player .avatar{width:38px;height:38px;border-radius:50%;display:flex;justify-content:center;align-items:center;color:#fff;font-weight:800;font-size:.9rem}
+.ludo-player .pname{font-size:.82rem;font-weight:700;color:#6b5636}
+.ludo-player .pstats{font-size:.68rem;color:#a89878}
+.dice-area{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
+.dice{width:60px;height:60px;background:#fff;border-radius:12px;display:flex;justify-content:center;align-items:center;font-size:2.2rem;font-weight:800;color:#6b5636;box-shadow:0 6px 16px rgba(0,0,0,.15);border:2px solid #ede3d0}
+.ludo-msg{font-size:.9rem;color:#b55;font-weight:700;min-height:22px;text-align:center}
+.animal-board{display:grid;grid-template-columns:repeat(6,68px);grid-template-rows:repeat(6,68px);gap:5px;background:#fff;padding:16px;border-radius:18px;box-shadow:inset 0 0 0 2px #ede3d0}
+@media(max-width:700px){.animal-board{grid-template-columns:repeat(6,50px);grid-template-rows:repeat(6,50px)}}
+.animal-cell{background:#f7f3ec;border-radius:10px;display:flex;justify-content:center;align-items:center;font-size:1.6rem;cursor:pointer;border:2px solid #ede3d0;transition:.2s;position:relative}
+@media(max-width:700px){.animal-cell{font-size:1.2rem}}
+.animal-cell.empty{background:#faf6ee;cursor:pointer}
+.animal-cell.package{background:linear-gradient(135deg,#d9c8a9,#c9b48e);color:#8b6b3d;font-size:1.8rem}
+.animal-cell.package:hover{transform:scale(1.06)}
+.animal-cell.revealed{background:#fff}
+.animal-cell.owner-red{background:#ffe8e8;border-color:#e74c3c}
+.animal-cell.owner-blue{background:#e8eeff;border-color:#3498db}
+.animal-cell.selected{outline:4px solid #f1c40f;outline-offset:2px;z-index:3}
+.animal-cell.movable-hint{box-shadow:inset 0 0 0 3px rgba(80,180,80,.7)}
+.animal-cell .label{position:absolute;bottom:1px;font-size:.55rem;font-weight:700}
+.animal-cell .label.red{color:#c0392b}.animal-cell .label.blue{color:#2980b9}
+.xq-board{position:relative;background:#e8b86d;border-radius:10px;box-shadow:0 12px 30px rgba(120,90,40,.3)}
+.xq-piece{width:46px;height:46px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.5rem;font-weight:800;box-shadow:0 4px 8px rgba(0,0,0,.3);transition:.15s;z-index:3}
+.xq-piece.red{background:#fdf0e0;color:#c0392b;border:3px solid #c0392b}
+.xq-piece.black{background:#f0f0f0;color:#222;border:3px solid #222}
+.xq-point{position:absolute;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:2}
+.xq-point.selected .xq-piece{transform:scale(1.12);box-shadow:0 0 0 4px #f1c40f,0 6px 12px rgba(0,0,0,.4)}
+.xq-point .move-dot{position:absolute;width:16px;height:16px;border-radius:50%;background:rgba(80,180,80,.7);box-shadow:0 0 6px rgba(0,0,0,.3);z-index:4}
+.chess-wrapper{position:relative;padding:28px 0 0 28px;display:inline-block}
+.chess-board{display:grid;grid-template-columns:repeat(8,56px);grid-template-rows:repeat(8,56px);border-radius:6px;overflow:hidden;box-shadow:0 12px 30px rgba(120,90,40,.3)}
+.chess-cell{width:56px;height:56px;display:flex;justify-content:center;align-items:center;font-size:2.4rem;cursor:pointer;position:relative;transition:.15s}
+.chess-cell.light{background:#f0e6d2}.chess-cell.dark{background:#b58863}
+.chess-cell.selected{box-shadow:inset 0 0 0 4px #f1c40f}
+.chess-cell .dot{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 8px rgba(0,0,0,.4);z-index:3}
+.chess-cell .capture-ring{position:absolute;inset:4px;border-radius:50%;border:4px solid rgba(255,80,80,.7);z-index:3}
+.chess-outer-label{position:absolute;font-size:.75rem;color:#5a4020;font-weight:700}
+.chess-outer-label.top{top:6px;text-align:center}
+.chess-outer-label.left{left:6px;text-align:right}
+.chess-white-piece{color:#fff;text-shadow:0 0 2px #000,0 0 4px #000,1px 1px 0 #666,-1px -1px 0 #666,1px -1px 0 #666,-1px 1px 0 #666}
+.chess-black-piece{color:#000;text-shadow:0 0 2px #fff,1px 1px 0 #ccc,-1px -1px 0 #ccc,1px -1px 0 #ccc,-1px 1px 0 #ccc}
+.promo-panel{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:12px;background:#fff;border-radius:14px;border:2px solid #f1c40f;box-shadow:0 8px 20px rgba(0,0,0,.15);margin-top:12px}
+.promo-panel .promo-title{width:100%;text-align:center;font-weight:800;color:#6b5636;font-size:.9rem;margin-bottom:4px}
+.promo-panel .promo-btn{width:56px;height:56px;background:#f0e6d2;border:2px solid #b58863;border-radius:8px;font-size:2rem;cursor:pointer;transition:.15s;display:flex;justify-content:center;align-items:center}
+.promo-panel .promo-btn:hover{background:#fff;transform:scale(1.05)}
+.naval-wrapper{display:flex;flex-direction:column;gap:14px;align-items:center;width:100%}
+.naval-phase{font-size:.95rem;font-weight:800;color:#6b5636;text-align:center}
+.naval-board{display:grid;grid-template-columns:repeat(10,42px);grid-template-rows:repeat(10,42px);gap:2px;background:#c9d8e0;padding:8px;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.15)}
+@media(max-width:800px){.naval-board{grid-template-columns:repeat(10,30px);grid-template-rows:repeat(10,30px)}}
+@media(max-width:560px){.naval-board{grid-template-columns:repeat(10,24px);grid-template-rows:repeat(10,24px)}}
+.naval-cell{width:42px;height:42px;background:#eaf3f8;border-radius:4px;display:flex;justify-content:center;align-items:center;cursor:pointer;font-size:1.1rem;transition:.12s;position:relative;border:1px solid #b8c8d2}
+@media(max-width:800px){.naval-cell{width:30px;height:30px;font-size:.8rem}}
+@media(max-width:560px){.naval-cell{width:24px;height:24px;font-size:.65rem}}
+.naval-cell:hover{filter:brightness(1.05)}
+.naval-cell.wave{background:#c9e4f5}
+.naval-cell.wave::after{content:'🌊';font-size:1.1rem}
+.naval-cell.ship-red{background:#e63b2e;border-color:#a52a1f}
+.naval-cell.ship-blue{background:#2b8fd6;border-color:#1c5f8f}
+.naval-cell.hit{background:#8b1f1f;color:#fff}
+.naval-cell.hit::after{content:'💥';font-size:1.2rem}
+.naval-cell.miss{background:#7a8f9c;color:#fff}
+.naval-cell.miss::after{content:'·';font-size:1.6rem;font-weight:800;color:#fff}
+.naval-cell.sunk{background:#666;color:#fff}
+.naval-cell.sunk::after{content:'✕';font-size:1.3rem;color:#fff}
+.naval-cell.preview-valid{background:#f5c6a5}
+.naval-ships{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;justify-content:center;align-items:flex-end}
+.naval-ship-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 10px;background:#fff;border:1px solid #d9c8a9;border-radius:10px;cursor:pointer;user-select:none;font-size:.75rem;font-weight:700;color:#6b5636;transition:.15s}
+.naval-ship-item:hover{background:#fffbe8}
+.naval-ship-item.placed{opacity:.4;cursor:default}
+.naval-ship-item .ship-preview{display:grid;gap:2px}
+.naval-ship-item .cell-mini{width:12px;height:12px;background:#e63b2e;border-radius:2px}
+.naval-ship-item.blue .ship-preview .cell-mini{background:#2b8fd6}
+.naval-score{display:flex;gap:16px;justify-content:center;font-weight:800;color:#6b5636}
+.naval-score .red{color:#c0392b}.naval-score .blue{color:#2980b9}
+.air-wrapper{display:flex;flex-direction:column;gap:14px;align-items:center;width:100%}
+.air-board{display:grid;grid-template-columns:repeat(15,30px);grid-template-rows:repeat(15,30px);gap:2px;background:#9ec8e0;padding:8px;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.15)}
+@media(max-width:800px){.air-board{grid-template-columns:repeat(15,22px);grid-template-rows:repeat(15,22px)}}
+@media(max-width:560px){.air-board{grid-template-columns:repeat(15,16px);grid-template-rows:repeat(15,16px)}}
+.air-cell{width:30px;height:30px;background:#e8f4fa;border-radius:3px;display:flex;justify-content:center;align-items:center;cursor:pointer;transition:.12s;position:relative;border:1px solid #b8d0dc;padding:0}
+@media(max-width:800px){.air-cell{width:22px;height:22px}}
+@media(max-width:560px){.air-cell{width:16px;height:16px}}
+.air-cell:hover{filter:brightness(1.05)}
+.air-cell.cloud{background:#eaf2f8}
+.air-cell.cloud::after{content:'☁️';font-size:.9rem}
+.air-cell.hit{background:#8b1f1f}
+.air-cell.hit::after{content:'💥';font-size:.9rem}
+.air-cell.miss{background:#7a8f9c}
+.air-cell.miss::after{content:'·';font-size:1.3rem;font-weight:800;color:#fff}
+.air-cell.sunk{background:#666}
+.air-cell.sunk::after{content:'✕';font-size:1rem;color:#fff}
+.air-cell.preview-valid{background:#f5c6a5}
+.air-cell .plane-cell{width:100%;height:100%;border-radius:2px;display:flex;justify-content:center;align-items:center;font-size:.6rem;font-weight:800;color:#fff}
+.air-cell.red-plane .plane-cell{background:#e63b2e;border:1px solid #a52a1f}
+.air-cell.blue-plane .plane-cell{background:#2b8fd6;border:1px solid #1c5f8f}
+.air-ships{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px;justify-content:center;align-items:flex-end}
+.air-ship-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 10px;background:#fff;border:1px solid #d9c8a9;border-radius:10px;cursor:pointer;user-select:none;font-size:.7rem;font-weight:700;color:#6b5636;transition:.15s}
+.air-ship-item:hover{background:#fffbe8}
+.air-ship-item.placed{opacity:.4;cursor:default}
+.air-ship-item .mini-grid{display:grid;gap:2px}
+.air-ship-item .mini-cell{width:12px;height:12px;border-radius:2px;background:#e63b2e}
+.air-ship-item.blue .mini-cell{background:#2b8fd6}
+.air-ship-item .mini-cell.empty{background:transparent}
+.junqi-board{display:grid;grid-template-columns:repeat(5,68px);grid-template-rows:repeat(12,48px);gap:3px;background:#d9c8a9;padding:10px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.15)}
+@media(max-width:800px){.junqi-board{grid-template-columns:repeat(5,50px);grid-template-rows:repeat(12,36px)}}
+.junqi-cell{background:#f7f3ec;border-radius:6px;display:flex;justify-content:center;align-items:center;cursor:pointer;font-size:.85rem;font-weight:800;transition:.12s;position:relative;border:1px solid #c9b48e;user-select:none}
+@media(max-width:800px){.junqi-cell{font-size:.7rem}}
+.junqi-cell.railroad{background:#e8dcc0;border-color:#8b6b3d}
+.junqi-cell.camp{background:#fef3c7;border-color:#f1c40f;border-radius:50%}
+.junqi-cell.base{background:#f0e0d0;border-color:#a52a1f}
+.junqi-cell.empty{background:#faf6ee;cursor:default}
+.junqi-cell.red-piece{background:#ffe8e8;color:#c0392b;border-color:#e74c3c}
+.junqi-cell.blue-piece{background:#e8eeff;color:#2980b9;border-color:#3498db}
+.junqi-cell.unknown-red{background:linear-gradient(135deg,#f5c0bb,#e63b2e);color:#fff;cursor:pointer}
+.junqi-cell.unknown-blue{background:linear-gradient(135deg,#bfd9f0,#2b8fd6);color:#fff;cursor:pointer}
+.junqi-cell.selected{outline:3px solid #f1c40f;outline-offset:1px;z-index:3}
+.junqi-cell.movable-hint{box-shadow:inset 0 0 0 3px rgba(80,180,80,.7)}
+.junqi-place-wrap{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.junqi-piece-pool{display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;padding:8px;background:#f7f3ec;border-radius:10px;border:1px solid #ede3d0}
+.junqi-piece-pool .pool-item{padding:6px 12px;background:#fff;border:1px solid #d9c8a9;border-radius:8px;cursor:grab;font-size:.8rem;font-weight:700;color:#6b5636;white-space:nowrap}
+.junqi-piece-pool .pool-item.placed{opacity:.4;cursor:default}
+.junqi-piece-pool .pool-item.red{background:#ffe8e8;color:#c0392b}
+.junqi-piece-pool .pool-item.blue{background:#e8eeff;color:#2980b9}
+.backgammon-board{display:flex;background:#8b5a2b;border:8px solid #5a3a1a;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.4);padding:8px;position:relative;gap:4px}
+.backgammon-half{display:grid;grid-template-columns:repeat(6,58px);grid-template-rows:repeat(2,1fr);gap:2px;width:352px;height:340px}
+@media(max-width:800px){.backgammon-half{grid-template-columns:repeat(6,42px);width:258px;height:250px}}
+.backgammon-point{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;border:1px solid #5a3a1a;overflow:hidden}
+.backgammon-point.bottom{justify-content:flex-end}
+.backgammon-point.dark-tri{background:linear-gradient(180deg,#2a1a0a,#4a2a1a)}
+.backgammon-point.light-tri{background:linear-gradient(180deg,#f0e6d2,#c8b898)}
+.backgammon-point.dark-tri.bottom{background:linear-gradient(0deg,#2a1a0a,#4a2a1a)}
+.backgammon-point.light-tri.bottom{background:linear-gradient(0deg,#f0e6d2,#c8b898)}
+.backgammon-point.highlight{outline:3px solid #f1c40f;outline-offset:-3px;z-index:3}
+.backgammon-point .checker{width:70%;height:24px;border-radius:50%;margin:1px 0;box-shadow:0 2px 4px rgba(0,0,0,.5);display:flex;justify-content:center;align-items:center;font-size:.7rem;font-weight:800;color:#fff}
+.backgammon-point .checker.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0);color:#333}
+.backgammon-point .checker.black{background:radial-gradient(circle at 32% 32%,#555,#000)}
+.backgammon-bar{width:24px;background:#5a3a1a;border-radius:6px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;padding:4px}
+.backgammon-bar .checker{width:20px;height:20px;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.5);margin:1px 0}
+.backgammon-bar .checker.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0)}
+.backgammon-bar .checker.black{background:radial-gradient(circle at 32% 32%,#555,#000)}
+.backgammon-dice{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.backgammon-die{width:48px;height:48px;background:#fff;border-radius:10px;display:flex;justify-content:center;align-items:center;font-size:1.8rem;font-weight:800;color:#3a3226;border:2px solid #d9c8a9;cursor:pointer;box-shadow:0 4px 8px rgba(0,0,0,.15)}
+.backgammon-die.used{opacity:.35;text-decoration:line-through}
+.backgammon-die:not(.used):hover{background:#fffbe8}
+.backgammon-info{font-size:.85rem;color:#6b5636;text-align:center;line-height:1.6}
+.mono-setup{display:flex;flex-wrap:wrap;gap:8px}
+.mono-setup .act{flex:0 0 42px;padding:8px 0;font-size:.8rem}
+.monopoly-wrap{display:flex;flex-direction:column;align-items:center;width:100%;gap:16px}
+.mono-board{position:relative;width:800px;height:800px;background:#e5e0d8;border:4px solid #c9b8a5;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.1);overflow:hidden}
+@media(max-width:820px){.mono-board{width:520px;height:520px}}
+@media(max-width:560px){.mono-board{width:360px;height:360px}}
+.mono-cell{position:absolute;background:#fdfcfb;border:1px solid #d1c7b8;padding:2px;font-size:.6rem;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;box-sizing:border-box;transition:transform .2s;z-index:5;overflow:hidden}
+.mono-cell:hover{transform:scale(1.05);z-index:10}
+.mono-cell.jail{background:#d9a5a5;color:#fff;font-weight:bold;font-size:.7rem}
+.mono-cell.hospital{background:#a5bcd9;color:#fff;font-weight:bold;font-size:.7rem}
+.mono-cell.bank{background:#d9cba5;color:#fff;font-weight:bold;font-size:.7rem}
+.mono-cell.portal{background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;font-weight:bold;font-size:.7rem}
+.mono-cell.chance{background:#fef3c7;color:#8b6b3d;font-weight:bold;font-size:.7rem}
+.cell-num{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:1.8rem;font-weight:900;color:#a0a0a0;opacity:.4;z-index:1;pointer-events:none}
+.mono-house{font-size:1.1rem;line-height:1;margin-top:1px;z-index:2}
+.mono-owner-bar{position:absolute;bottom:0;left:0;width:100%;height:5px;border-radius:0 0 4px 4px;z-index:2}
+.mono-piece{position:absolute;width:16px;height:16px;border-radius:50%;border:2px solid #fff;z-index:20;box-shadow:0 3px 6px rgba(0,0,0,.3)}
+.mono-panel{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.mono-player-card{background:#fff;border:2px solid #d1c7b8;border-radius:12px;padding:6px 12px;display:flex;flex-direction:column;align-items:center;font-weight:700;font-size:.8rem;color:#6b5636;box-shadow:0 4px 10px rgba(0,0,0,.05)}
+.mono-player-card.active{border-color:#f1c40f;box-shadow:0 0 10px rgba(241,196,15,.4);transform:translateY(-2px)}
+.mono-player-card.bankrupt{opacity:.5;background:#f5f5f5;filter:grayscale(1)}
+.mono-money{color:#27ae60;font-size:1.1rem;margin-top:2px}
+.mono-bank{color:#8e44ad;font-size:.75rem;margin-top:1px}
+.mono-bankrupt-label{color:#c0392b;font-size:.75rem;font-weight:900;margin-top:2px}
+#cellTooltip{position:fixed;display:none;background:#fff;border:1px solid #d9c8a9;border-radius:8px;padding:10px 14px;box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:12px;color:#6b5636;pointer-events:none;z-index:9999;line-height:1.6}
+.naval-score .white{color:#dcdcdc;text-shadow:0 1px 1px rgba(0,0,0,.1)}
+.naval-score .black{color:#000}
+.dropdown{position:relative;display:inline-block}
+.dropdown-menu{display:none;position:absolute;right:0;top:110%;background:#fff;border:1px solid #d9c8a9;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.15);min-width:160px;z-index:1000;overflow:hidden}
+.dropdown-menu button{display:block;width:100%;padding:10px 16px;border:none;background:#fff;text-align:left;font-size:.85rem;color:#6b5636;cursor:pointer;transition:.15s}
+.dropdown-menu button:hover{background:#f0e6d2}
+.dropdown.open .dropdown-menu{display:block}
+
+/* ===== DLC 行（框架） ===== */
+.dlc-section{margin-top:6px}
+.dlc-row{
+  display:flex;gap:18px;overflow-x:auto;
+  padding:16px 6px 24px;scroll-snap-type:x mandatory;
+  scrollbar-width:thin;min-height:120px;align-items:flex-start;
+}
+.dlc-row::-webkit-scrollbar{height:8px}
+.dlc-row::-webkit-scrollbar-thumb{background:#d9c8a9;border-radius:10px}
+.dlc-placeholder{
+  scroll-snap-align:start;flex:0 0 170px;height:480px;
+  background:#fff;border-radius:24px;padding:24px 16px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  cursor:pointer;transition:all .3s cubic-bezier(.2,.9,.3,1.2);
+  opacity:.55;box-shadow:0 4px 12px rgba(150,130,90,.1);
+  border:2px dashed #bbb;text-align:center;user-select:none;
+}
+.dlc-placeholder:hover{opacity:.85;transform:translateY(-4px);border-color:#888;background:#fafafa}
+.dlc-placeholder .plus-icon{
+  font-size:5rem;line-height:1;font-weight:200;color:#111;
+  margin-bottom:16px;transition:transform .2s;
+}
+.dlc-placeholder:hover .plus-icon{transform:scale(1.1)}
+.dlc-placeholder .dlc-hint{font-size:.85rem;color:#888;letter-spacing:1px}
+.dlc-entry{
+  scroll-snap-align:start;flex:0 0 170px;height:480px;
+  background:#fff;border-radius:24px;padding:24px 16px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  cursor:pointer;transition:all .3s cubic-bezier(.2,.9,.3,1.2);
+  opacity:.55;box-shadow:0 4px 12px rgba(150,130,90,.1);
+  border:2px solid transparent;position:relative;overflow:hidden;text-align:center;
+}
+.dlc-entry:hover{opacity:.85;transform:translateY(-4px)}
+.dlc-entry.active{
+  opacity:1;transform:translateY(-10px) scale(1.02);
+  box-shadow:0 20px 40px rgba(120,95,55,.25),0 8px 16px rgba(120,95,55,.2);
+  border-color:#c9b48e;
+}
+.dlc-entry.active::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.4),transparent);
+  pointer-events:none;
+}
+.dlc-entry .ico{font-size:4rem;line-height:1;margin-top:40px;display:flex;justify-content:center;align-items:center}
+.dlc-entry .nm{font-size:1.3rem;font-weight:800;color:#6b5636}
+.dlc-entry .sub{font-size:.8rem;color:#a89878;background:#f7f3ec;padding:6px 14px;border-radius:20px;display:inline-block;margin-bottom:30px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">🎲 棋乐无穷 5.5</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="homeBtn" style="display:none">← 大厅</button>
+      <div class="dropdown" id="saveDropdown" style="display:none">
+        <button class="btn" id="saveBtn">💾 保存棋局</button>
+        <div class="dropdown-menu">
+          <button id="saveLocal">📁 保存到本地（生成文件）</button>
+          <button id="saveBrowser">🌐 保存到浏览器</button>
+        </div>
+      </div>
+      <div class="dropdown" id="loadDropdown">
+        <button class="btn" id="loadBtn">📂 读取棋局</button>
+        <div class="dropdown-menu">
+          <button id="loadLocal">📁 从本地文件读取</button>
+          <button id="loadBrowser">🌐 从浏览器读取</button>
+        </div>
+      </div>
+      <button class="btn" id="bgmBtn">🎵 BGM 关</button>
+    </div>
+  </div>
+
+  <div class="hall" id="hall">
+    <div class="hall-title">左右滑动 · 选择游戏</div>
+    <div class="entries" id="entries"></div>
+    <div id="dlcContainer"></div>
+  </div>
+  <div id="gameContainer"></div>
+</div>
+
+<input type="file" id="dlcFileInput" accept=".html,.js,.json,.txt" style="display:none">
+<input type="file" id="fileInput" accept=".json" style="display:none">
+<audio id="bgmAudio" src="忘川彼岸.mp3" loop></audio>
+<div id="cellTooltip"></div>
+
+<script>
+const GAME_LIST = [
+  {id:'gomoku',name:'五子棋',icon:'⚫',sub:'15×15 交叉点'},
+  {id:'go',name:'围棋',icon:'⚪',sub:'吃子·劫争·天元'},
+  {id:'tictactoe',name:'井字棋',icon:'❌',sub:'3×3 格子'},
+  {id:'checkers',name:'跳棋',icon:'icon-circle-x',sub:'8×8 斜走连跳'},
+  {id:'othello',name:'黑白棋',icon:'icon-othello',sub:'8×8 翻转'},
+  {id:'ludo',name:'飞行棋',icon:'✈️',sub:'田字十字棋盘'},
+  {id:'animal',name:'斗兽棋',icon:'🦁',sub:'6×6 拆包对战'},
+  {id:'xiangqi',name:'象棋',icon:'🀄',sub:'楚河汉界·将帅对脸'},
+  {id:'chess',name:'国际象棋',icon:'♟️',sub:'王车易位·吃过路兵'},
+  {id:'naval',name:'海战棋',icon:'🚢',sub:'10×10 布阵对战'},
+  {id:'air',name:'空战棋',icon:'🛩️',sub:'15×15 云朵空战'},
+  {id:'junqi',name:'军棋',icon:'🎖️',sub:'暗棋布阵·暗棋对战'},
+  {id:'backgammon',name:'双陆棋',icon:'🎲',sub:'西洋双陆棋'},
+  {id:'monopoly',name:'大富翁',icon:'🏠',sub:'外56格·内16格·传送门'}
+];
+
+/* ============================================================
+   DLC 框架
+   ============================================================ */
+let dlcRows = [];
+let currentGameId = null;
+let currentGameStateGetter = null;
+let currentGameStateSetter = null;
+let currentGameCanSave = null;
+
+window.QileDLC = {
+  register(meta) {
+    if (!meta || !meta.id) { alert('DLC 格式错误：缺少 id'); return; }
+    const row = getCurrentImportRow();
+    if (!row) { alert('当前没有正在导入的行'); return; }
+    const all = dlcRows.flatMap(r => r.games);
+    if (all.some(g => g.id === meta.id)) { console.warn('DLC 已加载，跳过：' + meta.name); return; }
+    row.games.push({
+      id: meta.id,
+      name: meta.name || meta.id,
+      icon: meta.icon || '🎮',
+      sub: meta.sub || 'DLC 扩展',
+      loader: meta.loader
+    });
+    renderDlcRow(row);
+  }
+};
+
+function getCurrentImportRow() { return dlcRows.find(r => r.isImporting) || null; }
+
+function createDlcRow(title, isImporting) {
+  const row = { title, games: [], el: null, titleEl: null, isImporting: !!isImporting };
+  dlcRows.push(row);
+
+  const section = document.createElement('div');
+  section.className = 'dlc-section';
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'hall-title';
+  titleEl.style.marginTop = '6px';
+  titleEl.textContent = '✨ ' + title;
+  section.appendChild(titleEl);
+
+  const rowEl = document.createElement('div');
+  rowEl.className = 'dlc-row';
+  section.appendChild(rowEl);
+
+  document.getElementById('dlcContainer').appendChild(section);
+  row.el = rowEl;
+  row.titleEl = titleEl;
+
+  renderDlcRow(row);
+  return row;
+}
+
+function renderDlcRow(row) {
+  if (!row || !row.el) return;
+  row.el.innerHTML = '';
+
+  row.games.forEach(g => {
+    const d = document.createElement('div');
+    d.className = 'dlc-entry';
+    if (currentGameId === 'dlc_' + g.id) d.classList.add('active');
+    d.innerHTML = `
+      <div class="ico">${g.icon}</div>
+      <div><div class="nm">${g.name}</div></div>
+      <div class="sub">${g.sub}</div>
+    `;
+    d.onclick = () => {
+      if (g.loader && typeof window[g.loader] === 'function') {
+        goGame('dlc_' + g.id);
+      } else {
+        alert('该 DLC 游戏初始化函数未找到：' + (g.loader || '(未指定)'));
+      }
+    };
+    row.el.appendChild(d);
+  });
+
+  // 只有空行才显示加号
+  if (row.games.length === 0) {
+    const addCard = document.createElement('div');
+    addCard.className = 'dlc-placeholder';
+    addCard.innerHTML = `<div class="plus-icon">+</div><div class="dlc-hint">导入 DLC</div>`;
+    addCard.onclick = () => {
+      const importing = getCurrentImportRow();
+      if (importing && importing !== row) { alert('正在导入中，请稍候…'); return; }
+      row.isImporting = true;
+      document.getElementById('dlcFileInput').click();
+    };
+    row.el.appendChild(addCard);
+  }
+}
+
+document.getElementById('dlcFileInput').onchange = function (e) {
+  const file = e.target.files[0];
+  if (!file) {
+    const row = getCurrentImportRow();
+    if (row) row.isImporting = false;
+    return;
+  }
+  const fname = file.name;
+  const title = fname.replace(/\.[^.]+$/, '');
+  const row = getCurrentImportRow();
+  if (!row) return;
+
+  row.title = title;
+  if (row.titleEl) row.titleEl.textContent = '✨ ' + title;
+
+  const reader = new FileReader();
+  reader.onload = function (ev) {
+    let code = ev.target.result;
+    const m = code.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+    if (m) code = m[1];
+
+    const s = document.createElement('script');
+    s.textContent = code;
+    s.onerror = () => { alert('DLC 脚本执行出错，请检查文件内容'); row.isImporting = false; };
+    document.body.appendChild(s);
+
+    setTimeout(() => {
+      row.isImporting = false;
+      if (row.games.length === 0) {
+        row.el.innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'dlc-placeholder';
+        empty.innerHTML = `<div class="plus-icon">+</div><div class="dlc-hint">该文件未注册游戏，重新导入</div>`;
+        empty.onclick = () => { row.isImporting = true; document.getElementById('dlcFileInput').click(); };
+        row.el.appendChild(empty);
+        row.title = 'DLC 扩展';
+        if (row.titleEl) row.titleEl.textContent = '✨ DLC 扩展';
+        return;
+      }
+      renderDlcRow(row);
+      const lastRow = dlcRows[dlcRows.length - 1];
+      if (lastRow && lastRow.games.length > 0) {
+        createDlcRow('DLC 扩展', false);
+      }
+    }, 100);
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+/* ============================================================
+   路由
+   ============================================================ */
+function getRoute() { return location.hash.replace('#/', '').replace('#', '') || ''; }
+function goHome() { location.hash = ''; }
+function goGame(id) { location.hash = '/' + id; }
+window.addEventListener('hashchange', route);
+document.getElementById('homeBtn').onclick = goHome;
+
+const saveDropdown = document.getElementById('saveDropdown');
+const loadDropdown = document.getElementById('loadDropdown');
+
+function route() {
+  const id = getRoute();
+  const hall = document.getElementById('hall');
+  const container = document.getElementById('gameContainer');
+  const homeBtn = document.getElementById('homeBtn');
+
+  if (id && id.startsWith('dlc_')) {
+    const dlcId = id.replace('dlc_', '');
+    const all = dlcRows.flatMap(r => r.games);
+    const dlcGame = all.find(g => g.id === dlcId);
+    if (dlcGame && dlcGame.loader && typeof window[dlcGame.loader] === 'function') {
+      hall.style.display = 'none';
+      homeBtn.style.display = 'inline-block';
+      saveDropdown.style.display = 'none';
+      loadDropdown.style.display = 'none';
+      container.innerHTML = '';
+      window[dlcGame.loader](container);
+      currentGameId = 'dlc_' + dlcId;
+      currentGameStateGetter = null;
+      currentGameStateSetter = null;
+      currentGameCanSave = null;
+      dlcRows.forEach(r => renderDlcRow(r));
+      return;
+    } else {
+      location.hash = '';
+      return;
+    }
+  }
+
+  if (!id || !GAME_LIST.find(g => g.id === id)) {
+    hall.style.display = 'flex';
+    container.innerHTML = '';
+    homeBtn.style.display = 'none';
+    saveDropdown.style.display = 'none';
+    loadDropdown.style.display = 'inline-block';
+    renderEntries();
+    dlcRows.forEach(r => renderDlcRow(r));
+    currentGameId = null;
+    currentGameStateGetter = null;
+    currentGameStateSetter = null;
+    currentGameCanSave = null;
+    // 回大厅时如果最后一行不是空行，补一个空行
+    const lastRow = dlcRows[dlcRows.length - 1];
+    if (lastRow && lastRow.games.length > 0) {
+      createDlcRow('DLC 扩展', false);
+    }
+  } else {
+    hall.style.display = 'none';
+    homeBtn.style.display = 'inline-block';
+    saveDropdown.style.display = 'inline-block';
+    loadDropdown.style.display = 'none';
+    startGame(id);
+  }
+  saveDropdown.classList.remove('open');
+  loadDropdown.classList.remove('open');
+}
+
+function renderEntries() {
+  const box = document.getElementById('entries');
+  box.innerHTML = '';
+  GAME_LIST.forEach(g => {
+    const d = document.createElement('div');
+    d.className = 'entry';
+    if (currentGameId === g.id) d.classList.add('active');
+    let iconHtml;
+    if (g.icon === 'icon-circle-x') iconHtml = '<div class="icon-circle-x">✕</div>';
+    else if (g.icon === 'icon-othello') iconHtml = '<div class="icon-othello"></div>';
+    else iconHtml = g.icon;
+    d.innerHTML = `<div class="ico">${iconHtml}</div><div><div class="nm">${g.name}</div></div><div class="sub">${g.sub}</div>`;
+    d.onclick = () => goGame(g.id);
+    box.appendChild(d);
+  });
+}
+
+function startGame(id) {
+  if (currentGameId === id) return;
+  currentGameId = id;
+  currentGameStateGetter = null;
+  currentGameStateSetter = null;
+  currentGameCanSave = null;
+  const c = document.getElementById('gameContainer');
+  c.innerHTML = '';
+  switch (id) {
+    case 'gomoku': initGomoku(c); break;
+    case 'go': initGo(c); break;
+    case 'tictactoe': initTicTacToe(c); break;
+    case 'checkers': initCheckers(c); break;
+    case 'othello': initOthello(c); break;
+    case 'ludo': initLudo(c); break;
+    case 'animal': initAnimal(c); break;
+    case 'xiangqi': initXiangqi(c); break;
+    case 'chess': initChess(c); break;
+    case 'naval': initNaval(c); break;
+    case 'air': initAir(c); break;
+    case 'junqi': initJunqi(c); break;
+    case 'backgammon': initBackgammon(c); break;
+    case 'monopoly': initMonopoly(c); break;
+  }
+}
+
+/* ============================================================
+   以下为原版 14 个游戏的完整代码（与最初文件一致）
+   ============================================================ */
+function drawCrossLines(boardEl, rows, cols, cellSize, pad){
+  const w=(cols-1)*cellSize, h=(rows-1)*cellSize;
+  for(let r=0;r<rows;r++){
+    const line=document.createElement('div');line.className='line';
+    line.style.left=pad+'px';line.style.top=(pad+r*cellSize)+'px';
+    line.style.width=w+'px';line.style.height='2px';
+    boardEl.appendChild(line);
+  }
+  for(let c=0;c<cols;c++){
+    const line=document.createElement('div');line.className='line';
+    line.style.left=(pad+c*cellSize)+'px';line.style.top=pad+'px';
+    line.style.width='2px';line.style.height=h+'px';
+    boardEl.appendChild(line);
+  }
+}
+function addAxisLabels(boardEl, rows, cols, cellSize, pad){
+  for(let c=0;c<cols;c++){
+    const lbl=document.createElement('div');lbl.className='axis-label';
+    lbl.textContent=c+1;
+    lbl.style.left=(pad+c*cellSize-10)+'px';lbl.style.top=(pad-22)+'px';
+    lbl.style.width='20px';lbl.style.textAlign='center';boardEl.appendChild(lbl);
+  }
+  for(let r=0;r<rows;r++){
+    const lbl=document.createElement('div');lbl.className='axis-label';
+    lbl.textContent=r+1;
+    lbl.style.left=(pad-24)+'px';lbl.style.top=(pad+r*cellSize-8)+'px';
+    lbl.style.width='18px';lbl.style.textAlign='right';boardEl.appendChild(lbl);
+  }
+}
+function renderLog(id,log){
+  const el=document.getElementById(id);
+  if(el) el.innerHTML=log.slice(-15).map(l=>'<div>'+l+'</div>').join('');
+}
+
+/* ① 五子棋 */
+function initGomoku(container){
+  const SIZE=15,CELL=36,PAD=36;
+  let board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+  let cur='black',over=false,winner=null,history=[];
+  let log=[];
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">⚫ 五子棋 · 15×15 交叉点</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">黑先白后，棋子落在交叉点上。横竖斜任意方向连成五子获胜。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="gmStatus">⚫ 黑方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="gmLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="gmResign">🏳️ 投降</button>
+          <button class="act" id="gmSettle">📊 结算</button>
+          <button class="act" id="gmUndo">↩️ 悔棋</button>
+          <button class="act" id="gmRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="gmWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('gmWrap'),statusEl=document.getElementById('gmStatus');
+  function render(){
+    const b=document.createElement('div');b.className='cross-board';
+    b.style.width=((SIZE-1)*CELL+PAD*2)+'px';b.style.height=((SIZE-1)*CELL+PAD*2)+'px';
+    b.style.position='relative';
+    drawCrossLines(b,SIZE,SIZE,CELL,PAD);addAxisLabels(b,SIZE,SIZE,CELL,PAD);
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const pt=document.createElement('div');pt.className='cross-point';
+      pt.style.width=CELL+'px';pt.style.height=CELL+'px';
+      pt.style.left=(PAD+c*CELL-CELL/2)+'px';pt.style.top=(PAD+r*CELL-CELL/2)+'px';
+      const v=board[r][c];
+      if(v)pt.innerHTML=`<div class="stone ${v}"></div>`;
+      pt.onclick=()=>place(r,c);b.appendChild(pt);
+    }
+    wrap.innerHTML='';wrap.appendChild(b);
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(cur==='black'?'⚫ 黑方走棋':'⚪ 白方走棋');
+    renderLog('gmLog',log);
+  }
+  function place(r,c){
+    if(over||board[r][c])return;
+    history.push({board:board.map(x=>x.slice()),cur,over,winner,log:log.slice()});
+    board[r][c]=cur;
+    log.push(`${cur==='black'?'⚫ 黑方':'⚪ 白方'} (${r+1},${c+1})`);
+    if(check(r,c,cur)){over=true;winner=cur==='black'?'黑方获胜':'白方获胜';log.push('🏆 '+winner);}
+    else cur=cur==='black'?'white':'black';
+    render();
+  }
+  function check(r,c,p){
+    const dirs=[[1,0],[0,1],[1,1],[1,-1]];
+    for(const[dx,dy]of dirs){let n=1;
+      for(let i=1;i<5;i++){const nr=r+dx*i,nc=c+dy*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==p)break;n++;}
+      for(let i=1;i<5;i++){const nr=r-dx*i,nc=c-dy*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==p)break;n++;}
+      if(n>=5)return true;
+    }return false;
+  }
+  document.getElementById('gmResign').onclick=()=>{if(over)return;over=true;winner=cur==='black'?'白方胜(黑投降)':'黑方胜(白投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('gmSettle').onclick=()=>{if(over)return;over=true;winner='结算：未分胜负';log.push('📊 结算');render();};
+  document.getElementById('gmUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;log=s.log;render();};
+  document.getElementById('gmRestart').onclick=()=>{board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));cur='black';over=false;winner=null;history=[];log=[];render();};
+  currentGameStateGetter=()=>({game:'gomoku',board,cur,over,winner,log});
+  currentGameStateSetter=(s)=>{board=s.board;cur=s.cur;over=s.over;winner=s.winner;log=s.log||[];history=[];render();};
+  render();
+}
+
+/* ② 围棋 */
+function initGo(container){
+  let size=9;
+  let board=Array.from({length:size},()=>Array(size).fill(null));
+  let cur='black',over=false,winner=null;
+  let passes={black:0,white:0};let history=[];
+  let positionHistory=[];
+  let log=[];
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">⚪ 围棋 · 提劫</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>棋盘大小</h4><div class="actions" id="goSizes"></div></div>
+        <div class="panel"><h4>规则</h4><div class="rule-text">黑先白后, 棋子落在交叉点。无气棋子被吃。禁全同(提劫): 局面重复禁止落子。13路及以上黑贴7.5目。双方各限停一手3次。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="goStatus">⚫ 黑方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="goLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="goResign">🏳️ 投降</button>
+          <button class="act" id="goSettle">📊 结算</button>
+          <button class="act" id="goUndo">↩️ 悔棋</button>
+          <button class="act" id="goRestart">🔄 重开</button>
+          <button class="act" id="goPass">⏸️ 停一手</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="goWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('goWrap'),statusEl=document.getElementById('goStatus'),sizesBox=document.getElementById('goSizes');
+  function starPoints(s){
+    if(s===9)return[[4,4]];
+    if(s===13)return[[6,6],[3,3],[3,9],[9,3],[9,9]];
+    if(s===19)return[[9,9],[3,3],[3,15],[15,3],[15,15]];
+    if(s===21)return[[10,10],[3,3],[3,17],[17,3],[17,17]];
+    if(s===5)return[[2,2]];
+    return[];
+  }
+  function boardKey(b){return b.map(row=>row.map(v=>v==='black'?'B':(v==='white'?'W':'.')).join('')).join('/');}
+  function buildSizes(){
+    sizesBox.innerHTML='';
+    [3,5,9,13,19,21].forEach(s=>{
+      const b=document.createElement('button');b.className='act';b.textContent=s+'路';b.style.flex='0 0 52px';
+      if(s===size)b.style.background='#e8dcc0';
+      b.onclick=()=>{size=s;board=Array.from({length:size},()=>Array(size).fill(null));cur='black';over=false;winner=null;passes={black:0,white:0};history=[];positionHistory=[boardKey(board)];log=[];buildSizes();render();};
+      sizesBox.appendChild(b);
+    });
+  }
+  function render(){
+    const CELL=size<=9?40:(size<=13?34:28);const PAD=CELL+8;
+    const b=document.createElement('div');b.className='cross-board';
+    b.style.width=((size-1)*CELL+PAD*2)+'px';b.style.height=((size-1)*CELL+PAD*2)+'px';
+    b.style.position='relative';
+    drawCrossLines(b,size,size,CELL,PAD);addAxisLabels(b,size,size,CELL,PAD);
+    const stars=starPoints(size);
+    for(let r=0;r<size;r++)for(let c=0;c<size;c++){
+      const pt=document.createElement('div');pt.className='cross-point';
+      pt.style.width=CELL+'px';pt.style.height=CELL+'px';
+      pt.style.left=(PAD+c*CELL-CELL/2)+'px';pt.style.top=(PAD+r*CELL-CELL/2)+'px';
+      const v=board[r][c];
+      if(v)pt.innerHTML=`<div class="stone ${v}" style="width:${CELL*.8}px;height:${CELL*.8}px"></div>`;
+      else if(stars.some(([sr,sc])=>sr===r&&sc===c))pt.innerHTML='<div class="star"></div>';
+      pt.onclick=()=>place(r,c);b.appendChild(pt);
+    }
+    wrap.innerHTML='';wrap.appendChild(b);
+    if(over)statusEl.textContent='🏆 '+(winner||'结束');
+    else statusEl.textContent=(cur==='black'?'⚫ 黑方走棋':'⚪ 白方走棋')+` (停${passes.black}/3,${passes.white}/3)`;
+    renderLog('goLog',log);
+  }
+  function getGroupOf(b,r,c,s){
+    const color=b[r][c];if(!color)return{stones:[],liberties:new Set()};
+    const stones=[];const visited=new Set();const liberties=new Set();
+    const stack=[[r,c]];visited.add(r+','+c);
+    while(stack.length){
+      const[x,y]=stack.pop();stones.push([x,y]);
+      for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
+        const nx=x+dx,ny=y+dy;
+        if(nx<0||nx>=s||ny<0||ny>=s)continue;
+        if(b[nx][ny]===null)liberties.add(nx+','+ny);
+        else if(b[nx][ny]===color&&!visited.has(nx+','+ny)){visited.add(nx+','+ny);stack.push([nx,ny]);}
+      }
+    }
+    return{stones,liberties};
+  }
+  function place(r,c){
+    if(over||board[r][c])return;
+    const snapshot={board:board.map(x=>x.slice()),cur,over,winner,passes:{...passes},positionHistory:positionHistory.slice(),log:log.slice()};
+    const simBoard=board.map(x=>x.slice());
+    simBoard[r][c]=cur;
+    const opp=cur==='black'?'white':'black';
+    let captured=0;
+    for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
+      const nr=r+dx,nc=c+dy;
+      if(nr<0||nr>=size||nc<0||nc>=size)continue;
+      if(simBoard[nr][nc]===opp){
+        const g=getGroupOf(simBoard,nr,nc,size);
+        if(g.liberties.size===0){g.stones.forEach(([sr,sc])=>simBoard[sr][sc]=null);captured+=g.stones.length;}
+      }
+    }
+    const self=getGroupOf(simBoard,r,c,size);
+    if(self.liberties.size===0)return;
+    const key=boardKey(simBoard);
+    if(positionHistory.includes(key)){alert('禁全同(提劫): 该局面已出现过, 不能落子!');return;}
+    history.push(snapshot);board=simBoard;positionHistory.push(key);
+    log.push(`${cur==='black'?'⚫ 黑方':'⚪ 白方'} (${r+1},${c+1})`+(captured>0?` 提${captured}子`:''));
+    cur=opp;render();
+  }
+  function settle(){
+    if(over)return;
+    let bl=0,wh=0;
+    for(let r=0;r<size;r++)for(let c=0;c<size;c++){if(board[r][c]==='black')bl++;else if(board[r][c]==='white')wh++;}
+    const komi=size>=13?7.5:0;const bs=bl-komi;
+    over=true;winner=bs>wh?`黑方胜(黑${bl}-${komi}=${bs} vs 白${wh})`:`白方胜(黑${bl}-${komi}=${bs} vs 白${wh})`;
+    log.push('📊 '+winner);render();
+  }
+  document.getElementById('goResign').onclick=()=>{if(over)return;over=true;winner=cur==='black'?'白方胜(黑投降)':'黑方胜(白投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('goSettle').onclick=settle;
+  document.getElementById('goUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;passes=s.passes;positionHistory=s.positionHistory;log=s.log;render();};
+  document.getElementById('goRestart').onclick=()=>{board=Array.from({length:size},()=>Array(size).fill(null));cur='black';over=false;winner=null;passes={black:0,white:0};history=[];positionHistory=[boardKey(board)];log=[];render();};
+  document.getElementById('goPass').onclick=()=>{if(over)return;if(passes[cur]>=3){alert('停一手次数已用完');return;}passes[cur]++;log.push(`${cur==='black'?'⚫ 黑方':'⚪ 白方'} 停一手 (${passes[cur]}/3)`);cur=cur==='black'?'white':'black';render();};
+  buildSizes();positionHistory=[boardKey(board)];render();
+  currentGameStateGetter=()=>({game:'go',size,board,cur,over,winner,passes,positionHistory,log});
+  currentGameStateSetter=(s)=>{size=s.size;board=s.board;cur=s.cur;over=s.over;winner=s.winner;passes=s.passes||{black:0,white:0};positionHistory=s.positionHistory||[boardKey(board)];log=s.log||[];history=[];buildSizes();render();};
+}
+
+/* ③ 井字棋 */
+function initTicTacToe(container){
+  let board=Array.from({length:3},()=>Array(3).fill(null));
+  let cur='X',over=false,winner=null,history=[],winLine=[];
+  let log=[];
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">❌ 井字棋 · 3×3 格子</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">X先O后，在格子里落子。横竖斜连成三子获胜。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="tttStatus">❌ X 走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="tttLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="tttResign">🏳️ 投降</button>
+          <button class="act" id="tttSettle">📊 结算</button>
+          <button class="act" id="tttUndo">↩️ 悔棋</button>
+          <button class="act" id="tttRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="tttWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('tttWrap'),statusEl=document.getElementById('tttStatus');
+  function render(){
+    const b=document.createElement('div');b.className='ttt-board';
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++){
+      const cell=document.createElement('div');cell.className='ttt-cell';
+      if(board[r][c]==='X'){cell.textContent='❌';cell.classList.add('x');}
+      else if(board[r][c]==='O'){cell.textContent='⭕';cell.classList.add('o');}
+      if(winLine.some(([wr,wc])=>wr===r&&wc===c))cell.classList.add('win');
+      cell.onclick=()=>place(r,c);b.appendChild(cell);
+    }
+    wrap.innerHTML='';wrap.appendChild(b);
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(cur==='X'?'❌ X 走棋':'⭕ O 走棋');
+    renderLog('tttLog',log);
+  }
+  function place(r,c){
+    if(over||board[r][c])return;
+    history.push({board:board.map(x=>x.slice()),cur,over,winner,winLine:[...winLine],log:log.slice()});
+    board[r][c]=cur;
+    log.push(`${cur==='X'?'❌ X':'⭕ O'} (${r+1},${c+1})`);
+    const line=check();
+    if(line.length){over=true;winner=cur==='X'?'X 获胜':'O 获胜';winLine=line;log.push('🏆 '+winner);}
+    else if(board.flat().every(v=>v)){over=true;winner='平局';log.push('平局');}
+    else cur=cur==='X'?'O':'X';
+    render();
+  }
+  function check(){
+    for(let i=0;i<3;i++){
+      if(board[i][0]&&board[i][0]===board[i][1]&&board[i][1]===board[i][2])return[[i,0],[i,1],[i,2]];
+      if(board[0][i]&&board[0][i]===board[1][i]&&board[1][i]===board[2][i])return[[0,i],[1,i],[2,i]];
+    }
+    if(board[0][0]&&board[0][0]===board[1][1]&&board[1][1]===board[2][2])return[[0,0],[1,1],[2,2]];
+    if(board[0][2]&&board[0][2]===board[1][1]&&board[1][1]===board[2][0])return[[0,2],[1,1],[2,0]];
+    return[];
+  }
+  document.getElementById('tttResign').onclick=()=>{if(over)return;over=true;winner=cur==='X'?'O 胜(X投降)':'X 胜(O投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('tttSettle').onclick=()=>{if(over)return;over=true;winner='结算：未分胜负';log.push('📊 结算');render();};
+  document.getElementById('tttUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;winLine=s.winLine;log=s.log;render();};
+  document.getElementById('tttRestart').onclick=()=>{board=Array.from({length:3},()=>Array(3).fill(null));cur='X';over=false;winner=null;winLine=[];history=[];log=[];render();};
+  currentGameStateGetter=()=>({game:'tictactoe',board,cur,over,winner,winLine,log});
+  currentGameStateSetter=(s)=>{board=s.board;cur=s.cur;over=s.over;winner=s.winner;winLine=s.winLine||[];log=s.log||[];history=[];render();};
+  render();
+}
+
+/* ④ 跳棋 */
+function initCheckers(container){
+  const SIZE=8;
+  let board=[];
+  let cur='red',over=false,winner=null,history=[];
+  let selected=null;
+  let moves=[];
+  let log=[];
+  function resetBoard(){
+    board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if((r+c)%2===1){
+        if(r<3)board[r][c]={color:'black',king:false};
+        else if(r>4)board[r][c]={color:'red',king:false};
+      }
+    }
+    selected=null;moves=[];
+  }
+  resetBoard();
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🔴 跳棋 · 8×8 斜走连跳</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">红先黑后, 棋子只能在深色格斜走一格。跳吃: 斜前方有对方棋子且后方为空可跳过吃掉。连跳: 跳吃后还能继续跳则必须继续(可选)。兵到底线升为王(可后退)。吃掉对方全部棋子或对方无子可动获胜。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="ckStatus">🔴 红方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="ckLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="ckResign">🏳️ 投降</button>
+          <button class="act" id="ckSettle">📊 结算</button>
+          <button class="act" id="ckUndo">↩️ 悔棋</button>
+          <button class="act" id="ckRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="ckWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('ckWrap'),statusEl=document.getElementById('ckStatus');
+  function render(){
+    const b=document.createElement('div');b.className='checkers-board';
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');
+      cell.className='checkers-cell '+((r+c)%2===1?'dark':'light');
+      if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add('highlight');
+      const p=board[r][c];
+      if(p){
+        const piece=document.createElement('div');
+        piece.className='checkers-piece '+p.color+(p.king?' king':'');
+        if(selected&&selected[0]===r&&selected[1]===c)piece.classList.add('selected');
+        cell.appendChild(piece);
+      }
+      if(moves.some(([mr,mc])=>mr===r&&mc===c))cell.style.boxShadow='inset 0 0 0 4px rgba(80,200,80,.8)';
+      cell.onclick=()=>click(r,c);
+      b.appendChild(cell);
+    }
+    wrap.innerHTML='';wrap.appendChild(b);
+    let redCount=0,blackCount=0;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(board[r][c]){
+        if(board[r][c].color==='red')redCount++;
+        else blackCount++;
+      }
+    }
+    if(over)statusEl.textContent='🏆 '+(winner||'结束');
+    else statusEl.textContent=(cur==='red'?'🔴 红方走棋':'⚫ 黑方走棋')+` (红${redCount} 黑${blackCount})`;
+    renderLog('ckLog',log);
+  }
+  function getMoves(r,c){
+    const p=board[r][c];
+    if(!p)return{steps:[],jumps:[]};
+    const steps=[];const jumps=[];
+    const dirs=[];
+    if(p.color==='red'||p.king)dirs.push([-1,-1],[-1,1]);
+    if(p.color==='black'||p.king)dirs.push([1,-1],[1,1]);
+    for(const[dr,dc]of dirs){
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&!board[nr][nc])steps.push([nr,nc]);
+    }
+    for(const[dr,dc]of dirs){
+      const mr=r+dr,mc=c+dc;
+      const nr=r+2*dr,nc=c+2*dc;
+      if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&!board[nr][nc]&&board[mr][mc]&&board[mr][mc].color!==p.color)jumps.push([nr,nc,mr,mc]);
+    }
+    return{steps,jumps};
+  }
+  function click(r,c){
+    if(over)return;
+    const p=board[r][c];
+    if(selected){
+      const mv=moves.find(([mr,mc])=>mr===r&&mc===c);
+      if(mv){
+        history.push({board:board.map(row=>row.map(x=>x?{...x}:null)),cur,over,winner,selected:null,moves:[],log:log.slice()});
+        const[sr,sc]=selected;
+        const piece=board[sr][sc];
+        board[r][c]=piece;board[sr][sc]=null;
+        let text=`${piece.color==='red'?'🔴 红方':'⚫ 黑方'} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+        if(Math.abs(r-sr)===2){
+          const mr=(r+sr)/2,mc=(c+sc)/2;
+          board[mr][mc]=null;
+          text += ` 吃 ${piece.color==='red'?'⚫ 黑方':'🔴 红方'} 1子`;
+        }
+        log.push(text);
+        if(piece.color==='red'&&r===0){piece.king=true;log.push('🔴 红方 升王');}
+        if(piece.color==='black'&&r===SIZE-1){piece.king=true;log.push('⚫ 黑方 升王');}
+        const nextMoves=getMoves(r,c);
+        if(nextMoves.jumps.length>0){
+          selected=[r,c];moves=nextMoves.jumps.map(j=>[j[0],j[1]]);render();return;
+        }
+        selected=null;moves=[];
+        cur=cur==='red'?'black':'red';
+        checkEnd();render();return;
+      }
+      selected=null;moves=[];render();
+    }
+    if(p&&p.color===cur){
+      selected=[r,c];
+      const m=getMoves(r,c);
+      moves=[...m.steps,...m.jumps.map(j=>[j[0],j[1]])];
+      render();
+    }
+  }
+  function checkEnd(){
+    let redCount=0,blackCount=0;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(board[r][c]){
+        if(board[r][c].color==='red')redCount++;else blackCount++;
+      }
+    }
+    if(redCount===0){over=true;winner='黑方获胜';log.push('🏆 '+winner);}
+    else if(blackCount===0){over=true;winner='红方获胜';log.push('🏆 '+winner);}
+    else{
+      let hasMove=false;
+      for(let r=0;r<SIZE&&!hasMove;r++)for(let c=0;c<SIZE&&!hasMove;c++){
+        if(board[r][c]&&board[r][c].color===cur){
+          const m=getMoves(r,c);
+          if(m.steps.length>0||m.jumps.length>0)hasMove=true;
+        }
+      }
+      if(!hasMove){over=true;winner=(cur==='red'?'黑方':'红方')+'获胜(对方无子可动)';log.push('🏆 '+winner);}
+    }
+  }
+  document.getElementById('ckResign').onclick=()=>{if(over)return;over=true;winner=cur==='red'?'黑方胜(红投降)':'红方胜(黑投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('ckSettle').onclick=()=>{
+    if(over)return;
+    let redCount=0,blackCount=0;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(board[r][c]){
+        if(board[r][c].color==='red')redCount++;else blackCount++;
+      }
+    }
+    over=true;
+    if(redCount>blackCount)winner=`红方获胜(红${redCount} vs 黑${blackCount})`;
+    else if(blackCount>redCount)winner=`黑方获胜(红${redCount} vs 黑${blackCount})`;
+    else winner=`平局(双方各${redCount})`;
+    log.push('📊 '+winner);render();
+  };
+  document.getElementById('ckUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=s.selected;moves=s.moves||[];log=s.log;render();};
+  document.getElementById('ckRestart').onclick=()=>{resetBoard();cur='red';over=false;winner=null;history=[];log=[];render();};
+  currentGameStateGetter=()=>({game:'checkers',board,cur,over,winner,log});
+  currentGameStateSetter=(s)=>{board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=null;moves=[];log=s.log||[];history=[];render();};
+  render();
+}
+
+/* ⑤ 黑白棋 */
+function initOthello(container){
+  const SIZE=8;
+  let board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+  board[3][3]='white';board[3][4]='black';
+  board[4][3]='black';board[4][4]='white';
+  let cur='black',over=false,winner=null,history=[];
+  let log=[];
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">⚫ 黑白棋 · 8×8 翻转</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">黑先白后。落子后, 在任意方向上夹住对方棋子(两端为己方), 被夹住的对方棋子翻转为己方。无子可下时跳过。棋盘下满或双方都无子可下时, 棋子多者获胜。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="otStatus">⚫ 黑方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="otLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="otResign">🏳️ 投降</button>
+          <button class="act" id="otSettle">📊 结算</button>
+          <button class="act" id="otUndo">↩️ 悔棋</button>
+          <button class="act" id="otRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="otWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('otWrap'),statusEl=document.getElementById('otStatus');
+  const DIRS=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+  function getFlips(r,c,color){
+    if(board[r][c])return[];
+    const opp=color==='black'?'white':'black';
+    const flips=[];
+    for(const[dr,dc]of DIRS){
+      const line=[];
+      let nr=r+dr,nc=c+dc;
+      while(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]===opp){
+        line.push([nr,nc]);nr+=dr;nc+=dc;
+      }
+      if(line.length>0&&nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]===color)flips.push(...line);
+    }
+    return flips;
+  }
+  function validMoves(color){
+    const moves=[];
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(getFlips(r,c,color).length>0)moves.push([r,c]);
+    }
+    return moves;
+  }
+  function render(){
+    const b=document.createElement('div');b.className='othello-board';
+    const valids=validMoves(cur);
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');cell.className='othello-cell';
+      if(valids.some(([vr,vc])=>vr===r&&vc===c))cell.classList.add('valid');
+      const v=board[r][c];
+      if(v){const disc=document.createElement('div');disc.className='othello-disc '+v;cell.appendChild(disc);}
+      cell.onclick=()=>place(r,c);
+      b.appendChild(cell);
+    }
+    wrap.innerHTML='';wrap.appendChild(b);
+    let blackCount=0,whiteCount=0;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(board[r][c]==='black')blackCount++;else if(board[r][c]==='white')whiteCount++;
+    }
+    if(over)statusEl.textContent='🏆 '+(winner||'结束');
+    else statusEl.textContent=(cur==='black'?'⚫ 黑方走棋':'⚪ 白方走棋')+` (黑${blackCount} 白${whiteCount})`;
+    renderLog('otLog',log);
+  }
+  function place(r,c){
+    if(over)return;
+    const flips=getFlips(r,c,cur);
+    if(flips.length===0)return;
+    history.push({board:board.map(row=>row.slice()),cur,over,winner,log:log.slice()});
+    board[r][c]=cur;
+    for(const[fr,fc]of flips)board[fr][fc]=cur;
+    log.push(`${cur==='black'?'⚫ 黑方':'⚪ 白方'} (${r+1},${c+1}) 翻${flips.length}子`);
+    const nextColor=cur==='black'?'white':'black';
+    if(validMoves(nextColor).length===0){
+      if(validMoves(cur).length===0){
+        over=true;
+        let bc=0,wc=0;
+        for(let rr=0;rr<SIZE;rr++)for(let cc=0;cc<SIZE;cc++){
+          if(board[rr][cc]==='black')bc++;else if(board[rr][cc]==='white')wc++;
+        }
+        if(bc>wc)winner=`黑方获胜(黑${bc} vs 白${wc})`;
+        else if(wc>bc)winner=`白方获胜(黑${bc} vs 白${wc})`;
+        else winner=`平局(双方各${bc})`;
+        log.push('🏆 '+winner);
+        render();return;
+      }
+      log.push(`${nextColor==='black'?'⚫ 黑方':'⚪ 白方'} 无子可下, 跳过`);
+      render();return;
+    }
+    cur=nextColor;
+    render();
+  }
+  document.getElementById('otResign').onclick=()=>{if(over)return;over=true;winner=cur==='black'?'白方胜(黑投降)':'黑方胜(白投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('otSettle').onclick=()=>{
+    if(over)return;
+    let bc=0,wc=0;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(board[r][c]==='black')bc++;else if(board[r][c]==='white')wc++;
+    }
+    over=true;
+    if(bc>wc)winner=`黑方获胜(黑${bc} vs 白${wc})`;
+    else if(wc>bc)winner=`白方获胜(黑${bc} vs 白${wc})`;
+    else winner=`平局(双方各${bc})`;
+    log.push('📊 '+winner);render();
+  };
+  document.getElementById('otUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;log=s.log;render();};
+  document.getElementById('otRestart').onclick=()=>{
+    board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+    board[3][3]='white';board[3][4]='black';
+    board[4][3]='black';board[4][4]='white';
+    cur='black';over=false;winner=null;history=[];log=[];
+    render();
+  };
+  currentGameStateGetter=()=>({game:'othello',board,cur,over,winner,log});
+  currentGameStateSetter=(s)=>{board=s.board;cur=s.cur;over=s.over;winner=s.winner;log=s.log||[];history=[];render();};
+  render();
+}
+
+/* ⑥ 飞行棋 */
+function initLudo(container){
+  const COLORS=['#e63b2e','#2b8fd6','#2b9c4a','#f5d233'];
+  const NAMES=['红','蓝','绿','黄'];
+  const CLS=['red','blue','green','yellow'];
+  const CELL=4.6;
+  const OUTER=[];
+  for(let i=0;i<12;i++)OUTER.push({x:19+i*(62/12)+(62/12)/2, y:9});
+  for(let i=0;i<12;i++)OUTER.push({x:91, y:19+i*(62/12)+(62/12)/2});
+  for(let i=0;i<12;i++)OUTER.push({x:81-i*(62/12)-(62/12)/2, y:91});
+  for(let i=0;i<12;i++)OUTER.push({x:9, y:81-i*(62/12)-(62/12)/2});
+  const ARM_LEN=6;
+  const ARMS=[
+    Array.from({length:ARM_LEN},(_,i)=>({x:18+i*(28/ARM_LEN)+(28/ARM_LEN)/2, y:50})),
+    Array.from({length:ARM_LEN},(_,i)=>({x:50, y:18+i*(28/ARM_LEN)+(28/ARM_LEN)/2})),
+    Array.from({length:ARM_LEN},(_,i)=>({x:82-i*(28/ARM_LEN)-(28/ARM_LEN)/2, y:50})),
+    Array.from({length:ARM_LEN},(_,i)=>({x:50, y:82-i*(28/ARM_LEN)-(28/ARM_LEN)/2}))
+  ];
+  const START_IDX=[0,12,24,36];
+  const HOME_GATE_IDX=[47,11,23,35];
+  const FLY_IDX=[];
+  for(let i=0;i<48;i+=4)FLY_IDX.push(i);
+  const HANGAR_POS=[
+    {x:1,y:1,w:16,h:16},{x:83,y:1,w:16,h:16},
+    {x:83,y:83,w:16,h:16},{x:1,y:83,w:16,h:16}
+  ];
+  let count=4;
+  let pieces=[];
+  let resigned=[false,false,false,false];
+  let cur=0,over=false,winner=null;
+  let diceValue=0,phase='roll',msg='';
+  let extraRoll=false;
+  let log=[];
+  function activePlayers(){
+    const all=count===3?[0,1,2]:(count===2?[0,1]:[0,1,2,3]);
+    return all.filter(i=>!resigned[i]);
+  }
+  function allPlayersInGame(){return count===3?[0,1,2]:(count===2?[0,1]:[0,1,2,3]);}
+  function checkAllResigned(){
+    const active=activePlayers();
+    if(active.length<=1){
+      over=true;
+      if(active.length===1)winner=NAMES[active[0]]+'方获胜(其他方投降)';
+      else winner='全员投降';
+      log.push('🏆 '+winner);
+    }
+  }
+  function nextPlayer(){
+    const active=activePlayers();
+    if(active.length===0){over=true;winner='全员投降';return;}
+    let idx=active.indexOf(cur);
+    if(idx<0)idx=-1;
+    idx=(idx+1)%active.length;
+    cur=active[idx];
+  }
+  function initCur(){
+    const active=activePlayers();
+    if(!active.includes(cur))cur=active[0]||0;
+  }
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">✈️ 飞行棋 · 田字十字棋盘</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>人数</h4><div class="actions" id="ludoCount"></div></div>
+        <div class="panel"><h4>规则</h4><div class="rule-text">掷出双数(2/4/6)可点击机库圆框出子。掷出6可再投一次。走到✈格加完步数后判断落点是否在飞行格, 是则+4格。走完一圈到"家门口"拐进自己臂。到终点需点数刚好, 超过要回退。同格踢回机库。悬停多子格显示归属。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="ludoStatus">🔴 红方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="ludoLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="ludoResign">🏳️ 投降</button>
+          <button class="act" id="ludoSettle">📊 结算</button>
+          <button class="act" id="ludoRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="ludoWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('ludoWrap'),statusEl=document.getElementById('ludoStatus'),countBox=document.getElementById('ludoCount');
+  function buildCount(){
+    countBox.innerHTML='';
+    [2,3,4].forEach(n=>{
+      const b=document.createElement('button');b.className='act';b.textContent=n+'人';b.style.flex='0 0 52px';
+      if(n===count)b.style.background='#e8dcc0';
+      b.onclick=()=>{count=n;resetGame();buildCount();render();};
+      countBox.appendChild(b);
+    });
+  }
+  function resetGame(){
+    pieces=Array.from({length:count},()=>[-1,-1,-1,-1]);
+    resigned=[false,false,false,false];
+    cur=0;over=false;winner=null;diceValue=0;phase='roll';msg='';extraRoll=false;log=[];
+  }
+  function render(){
+    initCur();
+    const d=document.createElement('div');d.className='ludo-board';
+    const canvas=document.createElement('div');canvas.className='ludo-canvas';
+    OUTER.forEach((pos,i)=>{
+      const cell=document.createElement('div');cell.className='ludo-cell color-'+CLS[Math.floor(i/12)%4];
+      const dot=document.createElement('div');dot.className='dot';cell.appendChild(dot);
+      if(FLY_IDX.includes(i))cell.innerHTML='<span class="fly-mark">✈</span>';
+      if(START_IDX.includes(i))cell.classList.add('start-cell');
+      if(HOME_GATE_IDX.includes(i))cell.classList.add('home-gate');
+      cell.style.left=(pos.x-CELL/2)+'%';cell.style.top=(pos.y-CELL/2)+'%';
+      const cellPieces=[];
+      pieces.forEach((pl,pIdx)=>{
+        if(pIdx>=count)return;
+        pl.forEach(p=>{if(p===i)cellPieces.push(pIdx);});
+      });
+      if(cellPieces.length===1){
+        const piece=document.createElement('div');piece.className='piece';piece.style.background=COLORS[cellPieces[0]];
+        cell.appendChild(piece);
+      }else if(cellPieces.length>1){
+        cellPieces.forEach(pIdx=>{
+          const piece=document.createElement('div');
+          piece.className='piece multi';
+          piece.style.background=COLORS[pIdx];
+          cell.appendChild(piece);
+        });
+        const counts={};
+        cellPieces.forEach(pIdx=>counts[NAMES[pIdx]]=(counts[NAMES[pIdx]]||0)+1);
+        const hoverText=Object.entries(counts).map(([n,c])=>`${n}方×${c}`).join(' ');
+        const tip=document.createElement('div');tip.className='multi-count';tip.textContent=hoverText;
+        cell.appendChild(tip);
+      }
+      cell.onclick=()=>clickOuter(i);
+      canvas.appendChild(cell);
+    });
+    const allP=allPlayersInGame();
+    ARMS.forEach((arm,pi)=>{
+      if(!allP.includes(pi))return;
+      arm.forEach((pos,i)=>{
+        const m=document.createElement('div');m.className='ludo-arm color-'+CLS[pi];
+        m.style.left=(pos.x-CELL/2)+'%';m.style.top=(pos.y-CELL/2)+'%';
+        pieces[pi].forEach(p=>{
+          if(p===100+i){
+            const piece=document.createElement('div');piece.className='piece';piece.style.background=COLORS[pi];
+            m.appendChild(piece);
+          }
+        });
+        m.onclick=()=>clickArm(pi,i);
+        canvas.appendChild(m);
+      });
+    });
+    HANGAR_POS.forEach((hp,pi)=>{
+      if(!allP.includes(pi))return;
+      const hg=document.createElement('div');hg.className='ludo-hangar '+CLS[pi];
+      hg.style.left=hp.x+'%';hg.style.top=hp.y+'%';
+      hg.style.width=hp.w+'%';hg.style.height=hp.h+'%';
+      if(resigned[pi])hg.style.opacity='0.35';
+      ['s1','s2','s3','s4'].forEach((sp,si)=>{
+        const slot=document.createElement('div');slot.className='slot '+sp;
+        if(pieces[pi][si]===-1){
+          const p=document.createElement('div');p.className='piece';p.style.background='#fff';
+          p.style.border='2px solid rgba(0,0,0,.15)';
+          slot.appendChild(p);
+        }else{slot.classList.add('empty');}
+        slot.onclick=(e)=>{e.stopPropagation();if(!resigned[pi])spawn(pi,si);};
+        hg.appendChild(slot);
+      });
+      canvas.appendChild(hg);
+    });
+    const center=document.createElement('div');center.className='ludo-center';
+    pieces.forEach((pl,pi)=>{
+      if(pi>=count)return;
+      pl.forEach((p,idx)=>{
+        if(p===106){
+          const piece=document.createElement('div');piece.className='piece';
+          piece.style.background=COLORS[pi];
+          const ang=idx*90+pi*15;
+          piece.style.left=(50+Math.cos(ang*Math.PI/180)*26)+'%';
+          piece.style.top=(50+Math.sin(ang*Math.PI/180)*26)+'%';
+          piece.style.transform='translate(-50%,-50%)';
+          center.appendChild(piece);
+        }
+      });
+    });
+    canvas.appendChild(center);
+    d.appendChild(canvas);
+    const info=document.createElement('div');info.className='ludo-players';
+    allP.forEach(i=>{
+      const p=document.createElement('div');p.className='ludo-player';
+      if(i===cur&&!over&&!resigned[i])p.classList.add('active');
+      if(resigned[i])p.classList.add('resigned');
+      const outCount=pieces[i].filter(x=>x>=0&&x<48).length;
+      const armCount=pieces[i].filter(x=>x>=100&&x<106).length;
+      const homeCount=pieces[i].filter(x=>x===106).length;
+      const statusText=resigned[i]?'已认输':`场上${outCount} 臂${armCount} 终点${homeCount}`;
+      p.innerHTML=`<div class="avatar" style="background:${COLORS[i]}">${NAMES[i]}</div>
+        <div><div class="pname">${NAMES[i]}方</div><div class="pstats">${statusText}</div></div>`;
+      info.appendChild(p);
+    });
+    d.appendChild(info);
+    const diceArea=document.createElement('div');diceArea.className='dice-area';
+    const dice=document.createElement('div');dice.className='dice';dice.textContent=diceValue||'?';
+    diceArea.appendChild(dice);
+    if(phase==='roll'&&!over){
+      const rollBtn=document.createElement('button');rollBtn.className='btn primary';rollBtn.textContent='🎲 掷骰子';
+      rollBtn.onclick=rollDice;diceArea.appendChild(rollBtn);
+    }else if(phase==='select'&&!over){
+      const skipBtn=document.createElement('button');skipBtn.className='btn';skipBtn.textContent='跳过';
+      skipBtn.onclick=()=>{phase='roll';diceValue=0;extraRoll=false;log.push(`${NAMES[cur]}方 跳过`);nextPlayer();msg='跳过';render();};
+      diceArea.appendChild(skipBtn);
+    }
+    d.appendChild(diceArea);
+    const msgEl=document.createElement('div');msgEl.className='ludo-msg';msgEl.textContent=msg;
+    d.appendChild(msgEl);
+    wrap.innerHTML='';wrap.appendChild(d);
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(NAMES[cur]+'方走棋'+(extraRoll?' (额外回合)':''));
+    renderLog('ludoLog',log);
+  }
+  function rollDice(){
+    if(phase!=='roll'||over||resigned[cur])return;
+    diceValue=Math.floor(Math.random()*6)+1;
+    phase='select';
+    extraRoll=(diceValue===6);
+    msg=`掷出 ${diceValue} 点${extraRoll?' — 可再投一次!':''}`;
+    log.push(`🎲 ${NAMES[cur]}方 掷出 ${diceValue}`+(extraRoll?' (再投)':''));
+    render();
+  }
+  function spawn(pi,si){
+    if(phase!=='select'||pi!==cur)return;
+    if(resigned[pi])return;
+    if(diceValue%2!==0)return;
+    if(pieces[pi][si]!==-1)return;
+    pieces[pi][si]=START_IDX[pi];
+    msg='出子到起点';
+    log.push(`${NAMES[pi]}方 出子到起点`);
+    phase='roll';
+    if(extraRoll){extraRoll=false;diceValue=0;}
+    else{diceValue=0;nextPlayer();}
+    render();
+  }
+  function clickOuter(idx){
+    if(phase!=='select'||over)return;
+    for(let i=0;i<pieces[cur].length;i++){
+      if(pieces[cur][i]===idx){movePiece(cur,i);return;}
+    }
+  }
+  function clickArm(pi,idx){
+    if(phase!=='select'||over||pi!==cur)return;
+    for(let i=0;i<pieces[cur].length;i++){
+      if(pieces[cur][i]===100+idx){movePiece(cur,i);return;}
+    }
+  }
+  function movePiece(pi,pieceIdx){
+    if(phase!=='select'||pi!==cur||resigned[pi])return;
+    const pos=pieces[pi][pieceIdx];
+    if(pos<0)return;
+    let finalPos=pos;
+    let flew=false;
+    const start=START_IDX[pi];
+    if(pos>=0&&pos<48){
+      const relative=(pos-start+48)%48;
+      const newRelative=relative+diceValue;
+      if(newRelative<=47){
+        finalPos=(start+newRelative)%48;
+        if(FLY_IDX.includes(finalPos)){
+          finalPos=(finalPos+4)%48;
+          msg='✈️ 飞行+4格!';
+          flew=true;
+        }
+      }else{
+        const armIdx=newRelative-48;
+        if(armIdx>=ARM_LEN){
+          if(armIdx===ARM_LEN)finalPos=106;
+          else{const over=armIdx-ARM_LEN;finalPos=100+(ARM_LEN-1-(over-1));if(finalPos<100)finalPos=100;}
+        }else{finalPos=100+armIdx;}
+      }
+    }else if(pos>=100&&pos<100+ARM_LEN){
+      const armIdx=pos-100;
+      const newArmIdx=armIdx+diceValue;
+      if(newArmIdx>=ARM_LEN){
+        if(newArmIdx===ARM_LEN){finalPos=106;}
+        else{const over=newArmIdx-ARM_LEN;finalPos=100+(ARM_LEN-1-(over-1));if(finalPos<100)finalPos=100;}
+      }else{finalPos=100+newArmIdx;}
+    }else if(pos===106){return;}
+    let text=`${NAMES[pi]}方 棋子${pieceIdx+1} (${pos+1})→(${finalPos+1})`+(flew?' ✈️飞行':'');
+    const kicked=[];
+    if(finalPos>=0&&finalPos<48){
+      pieces.forEach((pl,pIdx)=>{
+        if(pIdx===pi||pIdx>=count)return;
+        pl.forEach((p,idx)=>{
+          if(p===finalPos){pl[idx]=-1;kicked.push(NAMES[pIdx]);}
+        });
+      });
+    }
+    if(kicked.length) text+=` 踢回 ${kicked.join('、')}方`;
+    if(finalPos===106) text+=' 🏁到达终点';
+    log.push(text);
+    pieces[pi][pieceIdx]=finalPos;
+    if(pieces[pi].every(p=>p===106)){over=true;winner=NAMES[pi]+'方获胜';log.push('🏆 '+winner);render();return;}
+    phase='roll';
+    if(extraRoll){extraRoll=false;diceValue=0;}
+    else{diceValue=0;nextPlayer();}
+    render();
+  }
+  document.getElementById('ludoResign').onclick=()=>{
+    if(over||resigned[cur])return;
+    resigned[cur]=true;
+    log.push(`🏳️ ${NAMES[cur]}方 认输`);
+    msg=`${NAMES[cur]}方已认输`;
+    checkAllResigned();
+    if(!over){
+      const active=activePlayers();
+      if(active.length===0){over=true;winner='全员投降';log.push('🏆 全员投降');render();return;}
+      let idx=active.indexOf(cur);
+      if(idx<0)idx=0;else idx=(idx+1)%active.length;
+      cur=active[idx];phase='roll';diceValue=0;extraRoll=false;
+    }
+    render();
+  };
+  document.getElementById('ludoSettle').onclick=()=>{
+    if(over)return;
+    const allP=allPlayersInGame();
+    const scores={};
+    allP.forEach(i=>{scores[i]=pieces[i].filter(x=>x===106).length;});
+    const maxScore=Math.max(...allP.map(i=>scores[i]));
+    const winners=allP.filter(i=>scores[i]===maxScore);
+    over=true;
+    if(winners.length===allP.length){winner='平局 (所有玩家到终点数相同)';}
+    else{winner=winners.map(i=>NAMES[i]).join('、')+'方获胜';}
+    log.push('📊 '+winner);render();
+  };
+  document.getElementById('ludoRestart').onclick=()=>{resetGame();buildCount();render();};
+  currentGameStateGetter=()=>({game:'ludo',count,pieces,resigned,cur,over,winner,diceValue,phase,msg,extraRoll,log});
+  currentGameStateSetter=(s)=>{
+    count=s.count;pieces=s.pieces;resigned=s.resigned;cur=s.cur;over=s.over;winner=s.winner;
+    diceValue=s.diceValue;phase=s.phase;msg=s.msg;extraRoll=s.extraRoll;log=s.log||[];
+    buildCount();render();
+  };
+  resetGame();buildCount();render();
+}
+
+/* ⑦ 斗兽棋 */
+function initAnimal(container){
+  const SIZE=6;
+  const ANIMALS=[
+    {name:'鼠',emoji:'🐭',rank:1},{name:'猫',emoji:'🐱',rank:2},
+    {name:'狗',emoji:'🐶',rank:3},{name:'狼',emoji:'🐺',rank:4},
+    {name:'豹',emoji:'🐆',rank:5},{name:'虎',emoji:'🐯',rank:6},
+    {name:'狮',emoji:'🦁',rank:7},{name:'象',emoji:'🐘',rank:8}
+  ];
+  let board=[];
+  let cur='red',over=false,winner=null,history=[];
+  let selected=null;
+  let log=[];
+  function getPackagePositions(){
+    const positions=[];
+    for(let r=0;r<SIZE;r++){
+      const startCol=r%2;
+      for(let c=startCol;c<SIZE;c+=2)positions.push([r,c]);
+    }
+    return positions;
+  }
+  function resetBoard(){
+    board=Array.from({length:SIZE},()=>Array(SIZE).fill(null).map(()=>({type:'empty'})));
+    const positions=getPackagePositions();
+    const redPool=[ANIMALS[0],ANIMALS[0],...ANIMALS.slice(1)];
+    const bluePool=[ANIMALS[0],ANIMALS[0],...ANIMALS.slice(1)];
+    redPool.sort(()=>Math.random()-.5);bluePool.sort(()=>Math.random()-.5);
+    positions.forEach((pos,i)=>{
+      const isRed=i%2===0;
+      const pool=isRed?redPool:bluePool;
+      const poolIdx=Math.floor(i/2);
+      const animal=pool[poolIdx];
+      board[pos[0]][pos[1]]={type:'animal',animal,owner:isRed?'red':'blue',revealed:false};
+    });
+    selected=null;
+  }
+  resetBoard();
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🦁 斗兽棋 · 6×6 拆包对战</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">6×6格子, 18个包裹, 双方各9只动物(鼠×2+其他7种各1)。点击包裹拆开消耗一个回合。点击己方已揭开的动物选中, 再点击相邻空格/敌方移动/吃子。吃子: 大吃小, 鼠可吃象, 象不能吃鼠。对方棋子全被吃完则获胜。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="anStatus">🔴 红方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="anLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="anResign">🏳️ 投降</button>
+          <button class="act" id="anSettle">📊 结算</button>
+          <button class="act" id="anUndo">↩️ 悔棋</button>
+          <button class="act" id="anRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="anWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('anWrap'),statusEl=document.getElementById('anStatus');
+  function isAdjacent(sr,sc,tr,tc){return Math.abs(sr-tr)+Math.abs(sc-tc)===1;}
+  function countAllAnimals(owner){
+    let n=0;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const o=board[r][c];
+      if(o.type==='animal'&&o.owner===owner)n++;
+    }
+    return n;
+  }
+  function countPackages(){
+    let n=0;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const o=board[r][c];
+      if(o.type==='animal'&&!o.revealed)n++;
+    }
+    return n;
+  }
+  function render(){
+    const b=document.createElement('div');b.className='animal-board';
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');cell.className='animal-cell';
+      const obj=board[r][c];
+      if(obj.type==='empty'){cell.classList.add('empty');}
+      else if(!obj.revealed){cell.classList.add('package');cell.textContent='📦';}
+      else{
+        cell.classList.add('revealed');
+        cell.textContent=obj.animal.emoji;
+        if(obj.owner==='red'){cell.classList.add('owner-red');cell.innerHTML+=`<span class="label red">${obj.animal.name}</span>`;}
+        else if(obj.owner==='blue'){cell.classList.add('owner-blue');cell.innerHTML+=`<span class="label blue">${obj.animal.name}</span>`;}
+      }
+      if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add('selected');
+      if(selected&&isAdjacent(selected[0],selected[1],r,c)){
+        const from=board[selected[0]][selected[1]];
+        if(from&&from.type==='animal'&&from.revealed&&from.owner===cur){
+          if(obj.type==='empty')cell.classList.add('movable-hint');
+          else if(obj.type==='animal'&&obj.revealed&&obj.owner!==cur&&canEat(from.animal,obj.animal))cell.classList.add('movable-hint');
+        }
+      }
+      cell.onclick=()=>click(r,c);b.appendChild(cell);
+    }
+    wrap.innerHTML='';wrap.appendChild(b);
+    const pkgCount=countPackages();
+    const redCount=countAllAnimals('red');
+    const blueCount=countAllAnimals('blue');
+    if(over)statusEl.textContent='🏆 '+(winner||'结束');
+    else statusEl.textContent=(cur==='red'?'🔴 红方走棋':'🔵 蓝方走棋')+` (待拆${pkgCount} 红${redCount}蓝${blueCount})`;
+    renderLog('anLog',log);
+  }
+  function click(r,c){
+    if(over)return;
+    const obj=board[r][c];
+    if(selected){
+      const[sr,sc]=selected;
+      const from=board[sr][sc];
+      if(isAdjacent(sr,sc,r,c)){
+        if(obj.type==='empty'){
+          history.push({board:JSON.parse(JSON.stringify(board)),cur,over,winner,selected:null,log:log.slice()});
+          board[r][c]=from;board[sr][sc]={type:'empty'};
+          log.push(`${from.owner==='red'?'🔴 红方':'🔵 蓝方'} ${from.animal.emoji}${from.animal.name} (${sr+1},${sc+1})→(${r+1},${c+1})`);
+          selected=null;afterMove();return;
+        }
+        if(obj.type==='animal'&&obj.revealed&&obj.owner!==from.owner&&canEat(from.animal,obj.animal)){
+          history.push({board:JSON.parse(JSON.stringify(board)),cur,over,winner,selected:null,log:log.slice()});
+          log.push(`${from.owner==='red'?'🔴 红方':'🔵 蓝方'} ${from.animal.emoji}${from.animal.name} (${sr+1},${sc+1})→(${r+1},${c+1}) 吃 ${obj.owner==='red'?'🔴 红方':'🔵 蓝方'} ${obj.animal.emoji}${obj.animal.name}`);
+          board[r][c]={...from,revealed:true};board[sr][sc]={type:'empty'};
+          selected=null;afterMove();return;
+        }
+      }
+      selected=null;render();return;
+    }
+    if(obj.type==='animal'&&!obj.revealed){
+      history.push({board:JSON.parse(JSON.stringify(board)),cur,over,winner,selected:null,log:log.slice()});
+      board[r][c]={...obj,revealed:true};
+      log.push(`${cur==='red'?'🔴 红方':'🔵 蓝方'} 拆开 (${r+1},${c+1}) 得到 ${obj.animal.emoji}${obj.animal.name} (${obj.owner==='red'?'红方':'蓝方'})`);
+      afterReveal();return;
+    }
+    if(obj.type==='animal'&&obj.revealed&&obj.owner===cur){selected=[r,c];render();return;}
+  }
+  function afterReveal(){cur=cur==='red'?'blue':'red';render();}
+  function afterMove(){
+    cur=cur==='red'?'blue':'red';render();
+    const redAll=countAllAnimals('red');
+    const blueAll=countAllAnimals('blue');
+    if(redAll===0&&blueAll>0){over=true;winner='蓝方获胜';log.push('🏆 '+winner);render();return;}
+    if(blueAll===0&&redAll>0){over=true;winner='红方获胜';log.push('🏆 '+winner);render();return;}
+    if(redAll===0&&blueAll===0){over=true;winner='平局';log.push('平局');render();return;}
+  }
+  function canEat(a,b){
+    if(a.name==='鼠'&&b.name==='象')return true;
+    if(a.name==='象'&&b.name==='鼠')return false;
+    return a.rank>=b.rank;
+  }
+  document.getElementById('anResign').onclick=()=>{if(over)return;over=true;winner=cur==='red'?'蓝方胜(红投降)':'红方胜(蓝投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('anSettle').onclick=()=>{
+    if(over)return;
+    const redCount=countAllAnimals('red');
+    const blueCount=countAllAnimals('blue');
+    over=true;
+    if(redCount>blueCount)winner=`红方获胜(红${redCount}只 vs 蓝${blueCount}只)`;
+    else if(blueCount>redCount)winner=`蓝方获胜(红${redCount}只 vs 蓝${blueCount}只)`;
+    else winner=`平局(双方各${redCount}只)`;
+    log.push('📊 '+winner);render();
+  };
+  document.getElementById('anUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=s.selected;log=s.log;render();};
+  document.getElementById('anRestart').onclick=()=>{resetBoard();cur='red';over=false;winner=null;history=[];log=[];render();};
+  currentGameStateGetter=()=>({game:'animal',board,cur,over,winner,log});
+  currentGameStateSetter=(s)=>{board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=null;log=s.log||[];history=[];render();};
+  render();
+}
+
+/* ⑧ 象棋 */
+function initXiangqi(container){
+  const ROWS=10,COLS=9;
+  let board=[];
+  let cur='red',over=false,winner=null,history=[],selected=null,moves=[];
+  let log=[];
+  const RED='red',BLACK='black';
+  const isRed=p=>['车','马','相','仕','帅','炮','兵'].includes(p);
+  const isBlack=p=>['車','馬','象','士','將','砲','卒'].includes(p);
+  const owner=p=>isRed(p)?RED:(isBlack(p)?BLACK:null);
+  function initPieces(){
+    board=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+    board[9][0]='车';board[9][1]='马';board[9][2]='相';board[9][3]='仕';board[9][4]='帅';board[9][5]='仕';board[9][6]='相';board[9][7]='马';board[9][8]='车';
+    board[7][1]='炮';board[7][7]='炮';
+    for(let c=0;c<9;c+=2)board[6][c]='兵';
+    board[0][0]='車';board[0][1]='馬';board[0][2]='象';board[0][3]='士';board[0][4]='將';board[0][5]='士';board[0][6]='象';board[0][7]='馬';board[0][8]='車';
+    board[2][1]='砲';board[2][7]='砲';
+    for(let c=0;c<9;c+=2)board[3][c]='卒';
+  }
+  initPieces();
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🀄 象棋 · 楚河汉界</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">红先黑后, 点击己方棋子选中, 再点击目标位置移动。车走直线, 马走日, 象走田, 士走斜, 炮翻山, 兵过河。将帅不能碰面。</div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="xqStatus">🔴 红方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="xqLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="xqResign">🏳️ 投降</button>
+          <button class="act" id="xqSettle">📊 结算</button>
+          <button class="act" id="xqUndo">↩️ 悔棋</button>
+          <button class="act" id="xqRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="xqWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('xqWrap'),statusEl=document.getElementById('xqStatus');
+  const CELL=52,PAD=50;
+  const W=(COLS-1)*CELL+PAD*2, H=(ROWS-1)*CELL+PAD*2;
+  function render(){
+    wrap.innerHTML='';
+    const b=document.createElement('div');b.className='xq-board';
+    b.style.width=W+'px';b.style.height=H+'px';
+    b.style.position='relative';
+    const svgNS='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(svgNS,'svg');
+    svg.setAttribute('width',W);svg.setAttribute('height',H);
+    svg.style.position='absolute';svg.style.left='0';svg.style.top='0';svg.style.pointerEvents='none';svg.style.zIndex='1';
+    const drawLine=(r1,c1,r2,c2)=>{
+      const line=document.createElementNS(svgNS,'line');
+      line.setAttribute('x1',PAD+c1*CELL);line.setAttribute('y1',PAD+r1*CELL);
+      line.setAttribute('x2',PAD+c2*CELL);line.setAttribute('y2',PAD+r2*CELL);
+      line.setAttribute('stroke','#5a4020');line.setAttribute('stroke-width','2');
+      svg.appendChild(line);
+    };
+    for(let r=0;r<ROWS;r++)drawLine(r,0,r,COLS-1);
+    for(let c=0;c<COLS;c++)drawLine(0,c,ROWS-1,c);
+    drawLine(0,3,2,5);drawLine(0,5,2,3);drawLine(1,3,1,5);drawLine(0,4,2,4);
+    drawLine(7,3,9,5);drawLine(7,5,9,3);drawLine(8,3,8,5);drawLine(7,4,9,4);
+    b.appendChild(svg);
+    const river=document.createElement('div');
+    river.style.position='absolute';river.style.top=(PAD+4.5*CELL-12)+'px';river.style.left='50%';
+    river.style.transform='translateX(-50%)';river.style.color='#8b6b3d';
+    river.style.fontSize='1.1rem';river.style.letterSpacing='3px';river.style.fontWeight='800';
+    river.style.opacity='.6';river.style.whiteSpace='nowrap';river.style.zIndex='2';
+    river.textContent='楚河  汉界';b.appendChild(river);
+    for(let c=0;c<COLS;c++){
+      const lbl=document.createElement('div');lbl.className='axis-label';
+      lbl.textContent=c+1;lbl.style.left=(PAD+c*CELL-10)+'px';lbl.style.top=(PAD-30)+'px';
+      lbl.style.width='20px';lbl.style.textAlign='center';b.appendChild(lbl);
+    }
+    for(let r=0;r<ROWS;r++){
+      const lbl=document.createElement('div');lbl.className='axis-label';
+      lbl.textContent=r+1;lbl.style.left=(PAD-30)+'px';lbl.style.top=(PAD+r*CELL-8)+'px';
+      lbl.style.width='20px';lbl.style.textAlign='right';b.appendChild(lbl);
+    }
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const pt=document.createElement('div');pt.className='xq-point';
+      pt.style.left=(PAD+c*CELL-CELL/2)+'px';pt.style.top=(PAD+r*CELL-CELL/2)+'px';
+      pt.style.width=CELL+'px';pt.style.height=CELL+'px';
+      const p=board[r][c];
+      if(p){const isR=isRed(p);pt.innerHTML=`<div class="xq-piece ${isR?'red':'black'}">${p}</div>`;}
+      if(selected&&selected[0]===r&&selected[1]===c)pt.classList.add('selected');
+      if(moves.some(([mr,mc])=>mr===r&&mc===c))pt.innerHTML+='<div class="move-dot"></div>';
+      pt.onclick=()=>click(r,c);b.appendChild(pt);
+    }
+    wrap.appendChild(b);
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(cur==='red'?'🔴 红方走棋':'⚫ 黑方走棋');
+    renderLog('xqLog',log);
+  }
+  function click(r,c){
+    if(over)return;
+    if(selected){
+      const[sr,sc]=selected;
+      if(moves.some(([mr,mc])=>mr===r&&mc===c)){
+        history.push({board:board.map(x=>x.slice()),cur,over,winner,selected,moves,log:log.slice()});
+        const moving=board[sr][sc];
+        const captured=board[r][c];
+        board[r][c]=moving;board[sr][sc]=null;
+        let text=`${isRed(moving)?'🔴 红方':'⚫ 黑方'} ${moving} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+        if(captured) text += ` 吃 ${isRed(captured)?'🔴 红方':'⚫ 黑方'} ${captured}`;
+        log.push(text);
+        selected=null;moves=[];
+        if(captured==='帅'){over=true;winner='黑方胜';log.push('🏆 '+winner);}
+        else if(captured==='將'){over=true;winner='红方胜';log.push('🏆 '+winner);}
+        else cur=cur==='red'?'black':'red';
+        render();return;
+      }
+      selected=null;moves=[];render();
+    }else{
+      const p=board[r][c];
+      if(p&&owner(p)===cur){
+        selected=[r,c];moves=[];
+        for(let rr=0;rr<ROWS;rr++)for(let cc=0;cc<COLS;cc++){
+          if(canMove(r,c,rr,cc))moves.push([rr,cc]);
+        }
+        render();
+      }
+    }
+  }
+  function canMove(sr,sc,tr,tc){
+    if(sr===tr&&sc===tc)return false;
+    const p=board[sr][sc];if(!p)return false;
+    const target=board[tr][tc];
+    if(target&&owner(target)===owner(p))return false;
+    const dr=tr-sr,dc=tc-sc;
+    const isR=isRed(p);
+    switch(p){
+      case '车':case '車':{
+        if(dr!==0&&dc!==0)return false;
+        if(dr===0){const step=Math.sign(dc);for(let c=sc+step;c!==tc;c+=step)if(board[sr][c])return false;}
+        else{const step=Math.sign(dr);for(let r=sr+step;r!==tr;r+=step)if(board[r][sc])return false;}
+        return true;
+      }
+      case '马':case '馬':{
+        if(!((Math.abs(dr)===2&&Math.abs(dc)===1)||(Math.abs(dr)===1&&Math.abs(dc)===2)))return false;
+        if(Math.abs(dr)===2){if(board[sr+Math.sign(dr)][sc])return false;}
+        else{if(board[sr][sc+Math.sign(dc)])return false;}
+        return true;
+      }
+      case '相':case '象':{
+        if(Math.abs(dr)!==2||Math.abs(dc)!==2)return false;
+        if(board[sr+dr/2][sc+dc/2])return false;
+        if(isR&&tr<5)return false;
+        if(!isR&&tr>4)return false;
+        return true;
+      }
+      case '仕':case '士':{
+        if(Math.abs(dr)!==1||Math.abs(dc)!==1)return false;
+        if(isR){if(tr<7||tr>9||tc<3||tc>5)return false;}
+        else{if(tr<0||tr>2||tc<3||tc>5)return false;}
+        return true;
+      }
+      case '帅':case '將':{
+        if(Math.abs(dr)+Math.abs(dc)===1){
+          if(isR){if(tr<7||tr>9||tc<3||tc>5)return false;}
+          else{if(tr<0||tr>2||tc<3||tc>5)return false;}
+          return true;
+        }
+        if(dc===0){
+          const r1=Math.min(sr,tr),r2=Math.max(sr,tr);
+          let clear=true;
+          for(let r=r1+1;r<r2;r++)if(board[r][sc]){clear=false;break;}
+          if(clear){const t=board[tr][tc];if(t==='帅'||t==='將')return true;}
+        }
+        return false;
+      }
+      case '炮':case '砲':{
+        if(dr!==0&&dc!==0)return false;
+        let cnt=0;
+        if(dr===0){const step=Math.sign(dc);for(let c=sc+step;c!==tc;c+=step)if(board[sr][c])cnt++;}
+        else{const step=Math.sign(dr);for(let r=sr+step;r!==tr;r+=step)if(board[r][sc])cnt++;}
+        if(target)return cnt===1;
+        return cnt===0;
+      }
+      case '兵':case '卒':{
+        if(isR){
+          if(dr===-1&&dc===0)return true;
+          if(sr<=4&&dr===0&&Math.abs(dc)===1)return true;
+        }else{
+          if(dr===1&&dc===0)return true;
+          if(sr>=5&&dr===0&&Math.abs(dc)===1)return true;
+        }
+        return false;
+      }
+    }
+    return false;
+  }
+  document.getElementById('xqResign').onclick=()=>{if(over)return;over=true;winner=cur==='red'?'黑方胜(红投降)':'红方胜(黑投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('xqSettle').onclick=()=>{if(over)return;over=true;winner='结算：未分胜负';log.push('📊 结算');render();};
+  document.getElementById('xqUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=s.selected;moves=s.moves;log=s.log;render();};
+  document.getElementById('xqRestart').onclick=()=>{initPieces();cur='red';over=false;winner=null;history=[];selected=null;moves=[];log=[];render();};
+  currentGameStateGetter=()=>({game:'xiangqi',board,cur,over,winner,log});
+  currentGameStateSetter=(s)=>{board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=null;moves=[];log=s.log||[];history=[];render();};
+  render();
+}
+
+/* ⑨ 国际象棋 */
+function initChess(container){
+  const ROWS=8,COLS=8;
+  let board=[],cur='white',over=false,winner=null,history=[],selected=null,moves=[];
+  let promoState=null,log=[];
+  let castling={white:{k:true,q:true},black:{k:true,q:true}};
+  let enPassantTarget=null;
+  let scores={white:0,black:0};
+  const WHITE='white',BLACK='black';
+  const isWhitePiece=p=>p&&p.color===WHITE;
+  const isBlackPiece=p=>p&&p.color===BLACK;
+  const PIECE_SCORES = {'♙':1,'♟':1,'♘':3,'♞':3,'♗':3,'♝':3,'♖':5,'♜':5,'♕':9,'♛':9};
+  function initPieces(){
+    board=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+    const back=['♜','♞','♝','♛','♚','♝','♞','♜'];
+    for(let c=0;c<8;c++){
+      board[0][c]={p:back[c],color:BLACK,type:'back'};
+      board[7][c]={p:back[c],color:WHITE,type:'back'};
+    }
+    for(let c=0;c<8;c++){
+      board[1][c]={p:'♟',color:BLACK,type:'pawn'};
+      board[6][c]={p:'♙',color:WHITE,type:'pawn'};
+    }
+    castling={white:{k:true,q:true},black:{k:true,q:true}};
+    enPassantTarget=null;
+    scores={white:0,black:0};
+  }
+  initPieces();
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">♟️ 国际象棋 · 王车易位·吃过路兵</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">白先黑后。支持王车易位与吃过路兵。兵到底部弹出选择升变。吃掉棋子得分：兵1分，马/象3分，车5分，后9分。王被吃游戏结束，同分平局。</div></div>
+        <div class="panel"><h4>比分</h4>
+          <div class="naval-score">
+            <span class="white">白: <span id="chScoreWhite">0</span></span>
+            <span class="black">黑: <span id="chScoreBlack">0</span></span>
+          </div>
+        </div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="chStatus">⚪ 白方走棋</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="chLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="chResign">🏳️ 投降</button>
+          <button class="act" id="chSettle">📊 结算</button>
+          <button class="act" id="chUndo">↩️ 悔棋</button>
+          <button class="act" id="chRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="chWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('chWrap'),statusEl=document.getElementById('chStatus');
+  const CELL=56;
+  function renderLog2(){document.getElementById('chLog').innerHTML=log.slice(-15).map(l=>'<div>'+l+'</div>').join('');}
+  function isAttacked(r, c, byColor) {
+    for (let rr = 0; rr < ROWS; rr++) for (let cc = 0; cc < COLS; cc++) {
+      const p = board[rr][cc];
+      if (p && p.color === byColor) {
+        const m = genMoves(rr, cc);
+        if (m.some(([mr, mc]) => mr === r && mc === c)) return true;
+      }
+    }
+    return false;
+  }
+  function render(){
+    wrap.innerHTML='';
+    const wrapper=document.createElement('div');wrapper.className='chess-wrapper';
+    const b=document.createElement('div');b.className='chess-board';
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=document.createElement('div');cell.className='chess-cell '+((r+c)%2===0?'light':'dark');
+      const piece=board[r][c];
+      if(piece){
+        cell.textContent=piece.p;
+        if(piece.color===WHITE)cell.classList.add('chess-white-piece');
+        else cell.classList.add('chess-black-piece');
+      }
+      if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add('selected');
+      if(moves.some(([mr,mc])=>mr===r&&mc===c)){
+        if(board[r][c]||(enPassantTarget&&enPassantTarget[0]===r&&enPassantTarget[1]===c))cell.innerHTML+='<div class="capture-ring"></div>';
+        else cell.innerHTML+='<div class="dot"></div>';
+      }
+      cell.onclick=()=>click(r,c);b.appendChild(cell);
+    }
+    wrapper.appendChild(b);
+    for(let c=0;c<COLS;c++){
+      const lbl=document.createElement('div');lbl.className='chess-outer-label top';
+      lbl.textContent=c+1;lbl.style.left=(28+c*CELL+CELL/2-8)+'px';wrapper.appendChild(lbl);
+    }
+    for(let r=0;r<ROWS;r++){
+      const lbl=document.createElement('div');lbl.className='chess-outer-label left';
+      lbl.textContent=r+1;lbl.style.top=(28+r*CELL+CELL/2-8)+'px';wrapper.appendChild(lbl);
+    }
+    wrap.appendChild(wrapper);
+    if(promoState){
+      const panel=document.createElement('div');panel.className='promo-panel';
+      panel.innerHTML='<div class="promo-title">选择升变棋子</div>';
+      const options=[{p:'♕'},{p:'♖'},{p:'♗'},{p:'♘'}];
+      const color=promoState.piece.color;
+      options.forEach(opt=>{
+        const sym=color===WHITE?opt.p:{'♕':'♛','♖':'♜','♗':'♝','♘':'♞'}[opt.p];
+        const btn=document.createElement('div');btn.className='promo-btn';btn.textContent=sym;
+        btn.onclick=()=>doPromotion(opt.p);panel.appendChild(btn);
+      });
+      wrap.appendChild(panel);
+    }
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(cur==='white'?'⚪ 白方走棋':'⚫ 黑方走棋');
+    document.getElementById('chScoreWhite').textContent = scores.white;
+    document.getElementById('chScoreBlack').textContent = scores.black;
+    renderLog2();
+  }
+  function click(r,c){
+    if(over||promoState)return;
+    if(selected){
+      if(moves.some(([mr,mc])=>mr===r&&mc===c)){
+        history.push({board:board.map(row=>row.map(x=>x?{...x}:null)),cur,over,winner,selected,moves,log:log.slice(),castling:JSON.parse(JSON.stringify(castling)),enPassantTarget,scores:{...scores}});
+        const movingPiece=board[selected[0]][selected[1]];
+        let captured=board[r][c];
+        const oldEnPassant=enPassantTarget;
+        enPassantTarget=null;
+        if(movingPiece.p==='♙'||movingPiece.p==='♟'){
+          if(oldEnPassant&&oldEnPassant[0]===r&&oldEnPassant[1]===c){
+            captured={p:movingPiece.p==='♙'?'♟':'♙',color:movingPiece.color===WHITE?BLACK:WHITE};
+            board[r+(movingPiece.color===WHITE?1:-1)][c]=null;
+          }
+        }
+        let castled=false;
+        if(movingPiece.p==='♚'||movingPiece.p==='♔'){
+          if(Math.abs(c-selected[1])===2){
+            castled=true;
+            const rookFromC=c>selected[1]?7:0;
+            const rookToC=c>selected[1]?5:3;
+            board[selected[0]][rookToC]=board[selected[0]][rookFromC];
+            board[selected[0]][rookFromC]=null;
+          }
+        }
+        board[r][c]=movingPiece;board[selected[0]][selected[1]]=null;
+        let text=`${movingPiece.color===WHITE?'⚪ 白方':'⚫ 黑方'} ${movingPiece.p} (${selected[0]+1},${selected[1]+1})→(${r+1},${c+1})`;
+        if(castled) text+=' (王车易位)';
+        if(captured){
+          const scoreVal = PIECE_SCORES[captured.p] || 0;
+          if(scoreVal > 0){scores[movingPiece.color] += scoreVal;text += ` 吃 ${captured.color===WHITE?'⚪ 白方':'⚫ 黑方'} ${captured.p} +${scoreVal}分`;}
+          else text += ` 吃 ${captured.color===WHITE?'⚪ 白方':'⚫ 黑方'} ${captured.p}`;
+        }
+        log.push(text);
+        if(movingPiece.p==='♚'){castling.white.k=false;castling.white.q=false;}
+        if(movingPiece.p==='♔'){castling.black.k=false;castling.black.q=false;}
+        if(movingPiece.p==='♜'&&selected[0]===7&&selected[1]===7)castling.white.k=false;
+        if(movingPiece.p==='♜'&&selected[0]===7&&selected[1]===0)castling.white.q=false;
+        if(movingPiece.p==='♜'&&selected[0]===0&&selected[1]===7)castling.black.k=false;
+        if(movingPiece.p==='♜'&&selected[0]===0&&selected[1]===0)castling.black.q=false;
+        if(movingPiece.p==='♙'&&selected[0]===6&&r===4)enPassantTarget=[5,c];
+        if(movingPiece.p==='♟'&&selected[0]===1&&r===3)enPassantTarget=[2,c];
+        if(captured&&captured.p==='♚'){over=true;winner='白方获胜';log.push('🏆 '+winner);selected=null;moves=[];render();return;}
+        else if(captured&&captured.p==='♔'){over=true;winner='黑方获胜';log.push('🏆 '+winner);selected=null;moves=[];render();return;}
+        if(movingPiece.p==='♙'&&r===0){promoState={row:r,col:c,piece:movingPiece};selected=null;moves=[];render();return;}
+        if(movingPiece.p==='♟'&&r===7){promoState={row:r,col:c,piece:movingPiece};selected=null;moves=[];render();return;}
+        cur=cur==='white'?'black':'white';selected=null;moves=[];render();return;
+      }
+      selected=null;moves=[];render();
+    }else{
+      const p=board[r][c];
+      if(p&&((cur===WHITE&&isWhitePiece(p))||(cur===BLACK&&isBlackPiece(p)))){
+        selected=[r,c];moves=genMoves(r,c);render();
+      }
+    }
+  }
+  function doPromotion(choice){
+    const color=promoState.piece.color;
+    const mapping=color===WHITE?{'♕':'♕','♖':'♖','♗':'♗','♘':'♘'}:{'♕':'♛','♖':'♜','♗':'♝','♘':'♞'};
+    board[promoState.row][promoState.col]={p:mapping[choice],color:color,type:'promoted'};
+    log.push(`${color===WHITE?'⚪ 白方':'⚫ 黑方'} ♙ 升变为 ${mapping[choice]}`);
+    promoState=null;cur=cur==='white'?'black':'white';render();
+  }
+  function genMoves(r,c){
+    const p=board[r][c];if(!p)return[];
+    const res=[];
+    const addSlide=(dr,dc)=>{
+      let nr=r+dr,nc=c+dc;
+      while(nr>=0&&nr<8&&nc>=0&&nc<8){
+        const t=board[nr][nc];
+        if(t&&t.color===p.color)break;
+        res.push([nr,nc]);if(t)break;
+        nr+=dr;nc+=dc;
+      }
+    };
+    switch(p.p){
+      case '♜':case '♖':addSlide(1,0);addSlide(-1,0);addSlide(0,1);addSlide(0,-1);break;
+      case '♞':case '♘':[[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr,dc])=>{const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const t=board[nr][nc];if(!t||t.color!==p.color)res.push([nr,nc]);}});break;
+      case '♝':case '♗':addSlide(1,1);addSlide(1,-1);addSlide(-1,1);addSlide(-1,-1);break;
+      case '♛':case '♕':addSlide(1,0);addSlide(-1,0);addSlide(0,1);addSlide(0,-1);addSlide(1,1);addSlide(1,-1);addSlide(-1,1);addSlide(-1,-1);break;
+      case '♚':case '♔':
+        [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>{
+          const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const t=board[nr][nc];if(!t||t.color!==p.color)res.push([nr,nc]);}
+        });
+        if(p.color===WHITE&&r===7&&c===4){
+          if(castling.white.k && !board[7][5] && !board[7][6] && board[7][7] && board[7][7].p==='♜'){
+            if(!isAttacked(7,4,'black') && !isAttacked(7,5,'black') && !isAttacked(7,6,'black')) res.push([7,6]);
+          }
+          if(castling.white.q && !board[7][3] && !board[7][2] && !board[7][1] && board[7][0] && board[7][0].p==='♜'){
+            if(!isAttacked(7,4,'black') && !isAttacked(7,3,'black') && !isAttacked(7,2,'black')) res.push([7,2]);
+          }
+        }else if(p.color===BLACK&&r===0&&c===4){
+          if(castling.black.k && !board[0][5] && !board[0][6] && board[0][7] && board[0][7].p==='♜'){
+            if(!isAttacked(0,4,'white') && !isAttacked(0,5,'white') && !isAttacked(0,6,'white')) res.push([0,6]);
+          }
+          if(castling.black.q && !board[0][3] && !board[0][2] && !board[0][1] && board[0][0] && board[0][0].p==='♜'){
+            if(!isAttacked(0,4,'white') && !isAttacked(0,3,'white') && !isAttacked(0,2,'white')) res.push([0,2]);
+          }
+        }
+        break;
+      case '♟':case '♙':
+        const dir=p.color===WHITE?-1:1;
+        if(!board[r+dir]?.[c]){
+          res.push([r+dir,c]);
+          const startRow=p.color===WHITE?6:1;
+          if(r===startRow&&!board[r+2*dir]?.[c])res.push([r+2*dir,c]);
+        }
+        [[r+dir,c-1],[r+dir,c+1]].forEach(([nr,nc])=>{
+          if(nr>=0&&nr<8&&nc>=0&&nc<8){
+            const t=board[nr][nc];
+            if((t&&t.color!==p.color)||(enPassantTarget&&enPassantTarget[0]===nr&&enPassantTarget[1]===nc))res.push([nr,nc]);
+          }
+        });
+        break;
+    }
+    return res;
+  }
+  document.getElementById('chResign').onclick=()=>{if(over||promoState)return;over=true;winner=cur==='white'?'黑方胜(白投降)':'白方胜(黑投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('chSettle').onclick=()=>{
+    if(over||promoState)return;
+    over=true;
+    if(scores.white > scores.black)winner=`白方胜(比分 ${scores.white} vs ${scores.black})`;
+    else if(scores.black > scores.white)winner=`黑方胜(比分 ${scores.black} vs ${scores.white})`;
+    else winner=`平局(比分 ${scores.white} vs ${scores.black})`;
+    log.push('📊 结算：'+winner);render();
+  };
+  document.getElementById('chUndo').onclick=()=>{
+    if(!history.length)return;
+    const s=history.pop();
+    board=s.board;cur=s.cur;over=s.over;winner=s.winner;selected=s.selected;moves=s.moves||[];
+    promoState=null;log=s.log;castling=s.castling;enPassantTarget=s.enPassantTarget;scores=s.scores||{white:0,black:0};
+    render();
+  };
+  document.getElementById('chRestart').onclick=()=>{initPieces();cur='white';over=false;winner=null;history=[];selected=null;moves=[];promoState=null;log=[];render();};
+  currentGameStateGetter=()=>({game:'chess',board,cur,over,winner,log,castling,enPassantTarget,scores});
+  currentGameStateSetter=(s)=>{
+    board=s.board;cur=s.cur;over=s.over;winner=s.winner;log=s.log||[];
+    castling=s.castling;enPassantTarget=s.enPassantTarget;scores=s.scores||{white:0,black:0};
+    selected=null;moves=[];promoState=null;history=[];render();
+  };
+  currentGameCanSave = () => !promoState;
+  render();
+}
+
+/* ⑩ 海战棋 */
+function initNaval(container){
+  const SIZE=10;
+  const SHIP_TYPES=[
+    {name:'潜艇',rows:1,cols:1,count:3,score:1},
+    {name:'护卫舰',rows:1,cols:2,count:2,score:2},
+    {name:'驱逐舰',rows:1,cols:3,count:2,score:3},
+    {name:'巡洋舰',rows:2,cols:3,count:1,score:5},
+    {name:'战列舰',rows:2,cols:4,count:1,score:8},
+    {name:'航空母舰',rows:2,cols:5,count:1,score:12}
+  ];
+  let boards={red:Array.from({length:SIZE},()=>Array(SIZE).fill(-1)),blue:Array.from({length:SIZE},()=>Array(SIZE).fill(-1))};
+  let shipCells={red:[],blue:[]};
+  let hits={red:Array.from({length:SIZE},()=>Array(SIZE).fill(false)),blue:Array.from({length:SIZE},()=>Array(SIZE).fill(false))};
+  let phase='place-red';
+  let selectedShip=null;
+  let previewCells=[];
+  let battleView='blue';
+  let curPlayer='red';
+  let scores={red:0,blue:0};
+  let over=false,winner=null;
+  let log=[];
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🚢 海战棋</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>状态</h4><div class="status-text" id="navalStatus">红方布置</div></div>
+        <div class="panel"><h4>分数</h4>
+          <div class="naval-score">
+            <span class="red">红: <span id="scoreRed">0</span></span>
+            <span class="blue">蓝: <span id="scoreBlue">0</span></span>
+          </div>
+        </div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="navalLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="navalRotate">🔄 旋转</button>
+          <button class="act" id="navalConfirm">✅ 确定</button>
+          <button class="act" id="navalSettle">📊 结算</button>
+          <button class="act" id="navalRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="navalWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('navalWrap');
+  const statusEl=document.getElementById('navalStatus');
+  const logEl=document.getElementById('navalLog');
+  const scoreRedEl=document.getElementById('scoreRed');
+  const scoreBlueEl=document.getElementById('scoreBlue');
+  function getPlacedCount(color,typeIdx){return shipCells[color].filter(s=>s.typeIdx===typeIdx).length;}
+  function allPlaced(color){for(let i=0;i<SHIP_TYPES.length;i++){if(getPlacedCount(color,i)<SHIP_TYPES[i].count)return false;}return true;}
+  function isPlaced(color,typeIdx,countIdx){return getPlacedCount(color,typeIdx) > countIdx;}
+  function isSunk(color,ship){let hit=0;for(const[r,c]of ship.cells){if(hits[color][r][c])hit++;}return hit/ship.cells.length >= 0.5;}
+  function allSunk(color){const ships=shipCells[color];if(ships.length===0)return false;return ships.every(s=>isSunk(color,s));}
+  function findShipAt(color,r,c){return shipCells[color].find(s=>s.cells.some(([sr,sc])=>sr===r&&sc===c));}
+  function render(){
+    wrap.innerHTML='';
+    const wrapper=document.createElement('div');wrapper.className='naval-wrapper';
+    if(phase==='place-red'||phase==='place-blue')wrapper.appendChild(renderPlacePhase(phase==='place-red'?'red':'blue'));
+    else wrapper.appendChild(renderBattlePhase());
+    wrap.appendChild(wrapper);
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(phase==='place-red'?'红方布置':phase==='place-blue'?'蓝方布置':(curPlayer==='red'?'红方攻击 (查看蓝方棋盘)':'蓝方攻击 (查看红方棋盘)'));
+    scoreRedEl.textContent=scores.red;
+    scoreBlueEl.textContent=scores.blue;
+    logEl.innerHTML=log.slice(-15).map(l=>`<div>${l}</div>`).join('');
+  }
+  function renderPlacePhase(color){
+    const div=document.createElement('div');
+    div.style.display='flex';div.style.flexDirection='column';div.style.gap='12px';div.style.alignItems='center';
+    const title=document.createElement('div');title.className='naval-phase';
+    title.textContent=`${color==='red'?'红方':'蓝方'}布置 — 点击军舰再点棋盘放置, 可旋转`;
+    div.appendChild(title);
+    const shipsDiv=document.createElement('div');shipsDiv.className='naval-ships';
+    SHIP_TYPES.forEach((t,ti)=>{
+      for(let ci=0;ci<t.count;ci++){
+        const isP=isPlaced(color,ti,ci);
+        const item=document.createElement('div');
+        item.className='naval-ship-item '+(color==='blue'?'blue':'')+(isP?' placed':'');
+        const preview=document.createElement('div');preview.className='ship-preview';
+        preview.style.gridTemplateColumns=`repeat(${t.cols},12px)`;
+        for(let i=0;i<t.rows*t.cols;i++){const mini=document.createElement('div');mini.className='cell-mini';preview.appendChild(mini);}
+        item.appendChild(preview);
+        item.appendChild(document.createTextNode(`${t.name}(${t.rows}×${t.cols})${isP?'✓':''}`));
+        if(!isP)item.onclick=()=>{selectedShip={color,typeIdx:ti,countIdx:ci,rotated:false};previewCells=[];render();};
+        if(selectedShip&&selectedShip.color===color&&selectedShip.typeIdx===ti&&selectedShip.countIdx===ci){item.style.background='#fffbe8';item.style.borderColor='#f1c40f';}
+        shipsDiv.appendChild(item);
+      }
+    });
+    div.appendChild(shipsDiv);
+    const boardDiv=document.createElement('div');boardDiv.className='naval-board';
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');cell.className='naval-cell';
+      if(boards[color][r][c]>=0)cell.classList.add('ship-'+color);
+      if(previewCells.some(([pr,pc])=>pr===r&&pc===c))cell.classList.add('preview-valid');
+      cell.onmouseenter=()=>{if(!selectedShip||selectedShip.color!==color)return;updatePreview(r,c);};
+      cell.onmouseleave=()=>{previewCells=[];document.querySelectorAll('.naval-cell.preview-valid').forEach(el=>el.classList.remove('preview-valid'));};
+      cell.onclick=()=>placeShip(r,c,color);
+      boardDiv.appendChild(cell);
+    }
+    div.appendChild(boardDiv);
+    return div;
+  }
+  function updatePreview(r,c){
+    if(!selectedShip)return;
+    const color=selectedShip.color;
+    const t=SHIP_TYPES[selectedShip.typeIdx];
+    const rows=selectedShip.rotated?t.cols:t.rows;
+    const cols=selectedShip.rotated?t.rows:t.cols;
+    const cells=[];
+    let valid=true;
+    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+      const nr=r+i,nc=c+j;
+      if(nr>=SIZE||nc>=SIZE){valid=false;break;}
+      if(boards[color][nr][nc]!==-1){valid=false;break;}
+      cells.push([nr,nc]);
+    }
+    if(!valid)cells.length=0;
+    previewCells=cells;
+    const boardDiv=document.querySelector('.naval-board');
+    if(boardDiv){
+      const allCells=boardDiv.children;
+      document.querySelectorAll('.naval-cell.preview-valid').forEach(el=>el.classList.remove('preview-valid'));
+      cells.forEach(([rr,cc])=>{const idx=rr*SIZE+cc;if(allCells[idx])allCells[idx].classList.add('preview-valid');});
+    }
+  }
+  function placeShip(r,c,color){
+    if(!selectedShip||selectedShip.color!==color)return;
+    const t=SHIP_TYPES[selectedShip.typeIdx];
+    const rows=selectedShip.rotated?t.cols:t.rows;
+    const cols=selectedShip.rotated?t.rows:t.cols;
+    const cells=[];
+    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+      const nr=r+i,nc=c+j;
+      if(nr>=SIZE||nc>=SIZE)return;
+      if(boards[color][nr][nc]!==-1)return;
+      cells.push([nr,nc]);
+    }
+    const placeIdx=shipCells[color].length;
+    cells.forEach(([rr,cc])=>{boards[color][rr][cc]=placeIdx;});
+    shipCells[color].push({typeIdx:selectedShip.typeIdx,cells});
+    log.push(`${color==='red'?'🔴 红方':'🔵 蓝方'} 放置了 ${t.name}`);
+    selectedShip=null;previewCells=[];
+    render();
+  }
+  function renderBattlePhase(){
+    const div=document.createElement('div');
+    div.style.display='flex';div.style.flexDirection='column';div.style.gap='12px';div.style.alignItems='center';
+    const title=document.createElement('div');title.className='naval-phase';
+    title.textContent=`${curPlayer==='red'?'红方':'蓝方'}攻击 — 这是${battleView==='red'?'红方':'蓝方'}的棋盘, 点击🌊揭开`;
+    div.appendChild(title);
+    const boardDiv=document.createElement('div');boardDiv.className='naval-board';
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');cell.className='naval-cell';
+      const v=boards[battleView][r][c];
+      const isHit=hits[battleView][r][c];
+      if(v>=0){
+        const ship=findShipAt(battleView,r,c);
+        if(ship&&isSunk(battleView,ship))cell.classList.add('sunk');
+        else if(isHit)cell.classList.add('hit');
+        else{cell.classList.add('wave');cell.onclick=()=>attack(r,c);}
+      }else{
+        if(isHit)cell.classList.add('miss');
+        else{cell.classList.add('wave');cell.onclick=()=>attack(r,c);}
+      }
+      boardDiv.appendChild(cell);
+    }
+    div.appendChild(boardDiv);
+    return div;
+  }
+  function attack(r,c){
+    if(over||phase!=='battle')return;
+    const viewColor=battleView;
+    if(hits[viewColor][r][c])return;
+    hits[viewColor][r][c]=true;
+    const v=boards[viewColor][r][c];
+    let ship=null;
+    if(v>=0)ship=findShipAt(viewColor,r,c);
+    const attacker=curPlayer;
+    const viewName=viewColor==='red'?'红方':'蓝方';
+    if(v>=0&&ship){
+      if(isSunk(viewColor,ship)){const score=SHIP_TYPES[ship.typeIdx].score;scores[attacker]+=score;log.push(`${attacker==='red'?'🔴 红方':'🔵 蓝方'} 攻击 (${r+1},${c+1}) 击毁 ${viewName} ${SHIP_TYPES[ship.typeIdx].name} +${score}分`);}
+      else log.push(`${attacker==='red'?'🔴 红方':'🔵 蓝方'} 攻击 (${r+1},${c+1}) 命中 ${viewName} ${SHIP_TYPES[ship.typeIdx].name}`);
+    }else log.push(`${attacker==='red'?'🔴 红方':'🔵 蓝方'} 攻击 (${r+1},${c+1}) 未命中`);
+    if(allSunk(viewColor)){over=true;winner=(attacker==='red'?'红方':'蓝方')+'获胜 (击毁对方全部军舰)';log.push('🏆 '+winner);render();return;}
+    curPlayer=curPlayer==='red'?'blue':'red';
+    battleView=battleView==='red'?'blue':'red';
+    render();
+  }
+  document.getElementById('navalRotate').onclick=()=>{if(selectedShip){selectedShip.rotated=!selectedShip.rotated;previewCells=[];render();}};
+  document.getElementById('navalConfirm').onclick=()=>{
+    if(phase==='place-red'){
+      if(!allPlaced('red')){alert('红方还有军舰未放置!');return;}
+      phase='place-blue';selectedShip=null;previewCells=[];log.push('红方布置完成, 轮到蓝方');render();
+    }else if(phase==='place-blue'){
+      if(!allPlaced('blue')){alert('蓝方还有军舰未放置!');return;}
+      phase='battle';curPlayer='red';battleView='blue';selectedShip=null;previewCells=[];log.push('双方布置完成, 开始对战! 红方先攻');render();
+    }
+  };
+  document.getElementById('navalSettle').onclick=()=>{if(over)return;over=true;if(scores.red>scores.blue)winner=`红方获胜(分数 ${scores.red} vs ${scores.blue})`;else if(scores.blue>scores.red)winner=`蓝方获胜(分数 ${scores.red} vs ${scores.blue})`;else winner=`平局(双方分数 ${scores.red})`;log.push('📊 '+winner);render();};
+  document.getElementById('navalRestart').onclick=()=>{
+    phase='place-red';
+    boards={red:Array.from({length:SIZE},()=>Array(SIZE).fill(-1)),blue:Array.from({length:SIZE},()=>Array(SIZE).fill(-1))};
+    hits={red:Array.from({length:SIZE},()=>Array(SIZE).fill(false)),blue:Array.from({length:SIZE},()=>Array(SIZE).fill(false))};
+    shipCells={red:[],blue:[]};selectedShip=null;previewCells=[];
+    battleView='blue';curPlayer='red';scores={red:0,blue:0};over=false;winner=null;log=[];
+    render();
+  };
+  currentGameStateGetter=()=>({game:'naval',boards,shipCells,hits,phase,battleView,curPlayer,scores,over,winner,log});
+  currentGameStateSetter=(s)=>{
+    boards=s.boards;shipCells=s.shipCells;hits=s.hits;phase=s.phase;battleView=s.battleView;
+    curPlayer=s.curPlayer;scores=s.scores;over=s.over;winner=s.winner;log=s.log||[];
+    selectedShip=null;previewCells=[];render();
+  };
+  render();
+}
+
+/* ⑪ 空战棋 */
+function initAir(container){
+  const SIZE=15;
+  function makePlane(wingCols, bodyLen, tailCols){
+    const rows=bodyLen+3;
+    const cols=Math.max(wingCols,tailCols);
+    const m=Array.from({length:rows},()=>Array(cols).fill(0));
+    const midC=Math.floor(cols/2);
+    m[0][midC]=1;
+    const wingStart=Math.floor((cols-wingCols)/2);
+    for(let c=0;c<wingCols;c++){if(wingStart+c<cols)m[1][wingStart+c]=1;}
+    for(let r=2;r<=1+bodyLen;r++){if(r<rows)m[r][midC]=1;}
+    const lastR=rows-1;
+    const tailStart=Math.floor((cols-tailCols)/2);
+    for(let c=0;c<tailCols;c++){if(tailStart+c<cols)m[lastR][tailStart+c]=1;}
+    return m;
+  }
+  const PLANE_DEFS=[
+    {name:'战斗机',shape:[[1]],count:3,score:1},
+    {name:'侦察机',shape:makePlane(3,0,0),count:2,score:2},
+    {name:'运输机',shape:makePlane(5,2,3),count:2,score:3},
+    {name:'战术轰炸机',shape:makePlane(5,3,3),count:1,score:5},
+    {name:'战略轰炸机',shape:makePlane(7,3,5),count:1,score:8}
+  ];
+  PLANE_DEFS.forEach(p=>{
+    p.rows=p.shape.length;
+    p.cols=p.shape[0].length;
+    p.cellCount=0;
+    p.shape.forEach(row=>row.forEach(v=>{if(v)p.cellCount++;}));
+  });
+  let boards={red:Array.from({length:SIZE},()=>Array(SIZE).fill(-1)),blue:Array.from({length:SIZE},()=>Array(SIZE).fill(-1))};
+  let planeCells={red:[],blue:[]};
+  let hits={red:Array.from({length:SIZE},()=>Array(SIZE).fill(false)),blue:Array.from({length:SIZE},()=>Array(SIZE).fill(false))};
+  let phase='place-red';
+  let selectedPlane=null;
+  let previewCells=[];
+  let battleView='blue';
+  let curPlayer='red';
+  let scores={red:0,blue:0};
+  let over=false,winner=null;
+  let log=[];
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🛩️ 空战棋 · 15×15 云朵之上</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>状态</h4><div class="status-text" id="airStatus">红方布置</div></div>
+        <div class="panel"><h4>分数</h4>
+          <div class="naval-score">
+            <span class="red">红: <span id="airScoreRed">0</span></span>
+            <span class="blue">蓝: <span id="airScoreBlue">0</span></span>
+          </div>
+        </div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="airLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="airRotate">🔄 旋转</button>
+          <button class="act" id="airConfirm">✅ 确定</button>
+          <button class="act" id="airSettle">📊 结算</button>
+          <button class="act" id="airRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="airWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('airWrap');
+  const statusEl=document.getElementById('airStatus');
+  const logEl=document.getElementById('airLog');
+  const scoreRedEl=document.getElementById('airScoreRed');
+  const scoreBlueEl=document.getElementById('airScoreBlue');
+  function getPlacedCount(color,typeIdx){return planeCells[color].filter(s=>s.typeIdx===typeIdx).length;}
+  function allPlaced(color){for(let i=0;i<PLANE_DEFS.length;i++){if(getPlacedCount(color,i)<PLANE_DEFS[i].count)return false;}return true;}
+  function isPlaced(color,typeIdx,countIdx){return getPlacedCount(color,typeIdx) > countIdx;}
+  function isDown(color,plane){let hit=0;for(const[r,c]of plane.cells){if(hits[color][r][c])hit++;}return hit/plane.cells.length >= 0.5;}
+  function allDown(color){const planes=planeCells[color];if(planes.length===0)return false;return planes.every(s=>isDown(color,s));}
+  function findPlaneAt(color,r,c){return planeCells[color].find(s=>s.cells.some(([sr,sc])=>sr===r&&sc===c));}
+  function render(){
+    wrap.innerHTML='';
+    const wrapper=document.createElement('div');wrapper.className='air-wrapper';
+    if(phase==='place-red'||phase==='place-blue')wrapper.appendChild(renderPlacePhase(phase==='place-red'?'red':'blue'));
+    else wrapper.appendChild(renderBattlePhase());
+    wrap.appendChild(wrapper);
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(phase==='place-red'?'红方布置':phase==='place-blue'?'蓝方布置':(curPlayer==='red'?'红方侦察 (查看蓝方空域)':'蓝方侦察 (查看红方空域)'));
+    scoreRedEl.textContent=scores.red;
+    scoreBlueEl.textContent=scores.blue;
+    logEl.innerHTML=log.slice(-15).map(l=>`<div>${l}</div>`).join('');
+  }
+  function planeMiniGrid(def){
+    const rows=def.rows,cols=def.cols;
+    let html='<div class="mini-grid" style="grid-template-columns:repeat('+cols+',12px)">';
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      const v=def.shape[r][c];
+      html+=v?`<div class="mini-cell"></div>`:`<div class="mini-cell empty"></div>`;
+    }
+    html+='</div>';
+    return html;
+  }
+  function renderPlacePhase(color){
+    const div=document.createElement('div');
+    div.style.display='flex';div.style.flexDirection='column';div.style.gap='12px';div.style.alignItems='center';
+    const title=document.createElement('div');title.className='naval-phase';
+    title.textContent=`${color==='red'?'红方':'蓝方'}布置 — 点击飞机再点空域放置, 可旋转`;
+    div.appendChild(title);
+    const planesDiv=document.createElement('div');planesDiv.className='air-ships';
+    PLANE_DEFS.forEach((t,ti)=>{
+      for(let ci=0;ci<t.count;ci++){
+        const isP=isPlaced(color,ti,ci);
+        const item=document.createElement('div');
+        item.className='air-ship-item '+(color==='blue'?'blue':'red')+(isP?' placed':'');
+        item.innerHTML=planeMiniGrid(t);
+        const nameDiv=document.createElement('div');
+        nameDiv.textContent=`${t.name}(${t.cols}×${t.rows})${isP?'✓':''}`;
+        nameDiv.style.marginTop='2px';
+        item.appendChild(nameDiv);
+        if(!isP)item.onclick=()=>{selectedPlane={color,typeIdx:ti,countIdx:ci,rotated:false};previewCells=[];render();};
+        if(selectedPlane&&selectedPlane.color===color&&selectedPlane.typeIdx===ti&&selectedPlane.countIdx===ci){item.style.background='#fffbe8';item.style.borderColor='#f1c40f';}
+        planesDiv.appendChild(item);
+      }
+    });
+    div.appendChild(planesDiv);
+    const boardDiv=document.createElement('div');boardDiv.className='air-board';
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');cell.className='air-cell';
+      const v=boards[color][r][c];
+      if(v>=0){cell.classList.add(color+'-plane');cell.innerHTML='<div class="plane-cell">■</div>';}
+      if(previewCells.some(([pr,pc])=>pr===r&&pc===c))cell.classList.add('preview-valid');
+      cell.onmouseenter=()=>{if(!selectedPlane||selectedPlane.color!==color)return;updatePreview(r,c);};
+      cell.onmouseleave=()=>{previewCells=[];document.querySelectorAll('.air-cell.preview-valid').forEach(el=>el.classList.remove('preview-valid'));};
+      cell.onclick=()=>placePlane(r,c,color);
+      boardDiv.appendChild(cell);
+    }
+    div.appendChild(boardDiv);
+    return div;
+  }
+  function getPlaneCells(typeIdx,r,c,rotated){
+    const def=PLANE_DEFS[typeIdx];
+    const rows=def.rows,cols=def.cols;
+    const cells=[];
+    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+      if(!def.shape[i][j])continue;
+      let nr,nc;
+      if(!rotated){nr=r+i;nc=c+j;}
+      else{nr=r+j;nc=c+(cols-1-i);}
+      cells.push([nr,nc]);
+    }
+    return cells;
+  }
+  function updatePreview(r,c){
+    if(!selectedPlane)return;
+    const color=selectedPlane.color;
+    const cells=getPlaneCells(selectedPlane.typeIdx,r,c,selectedPlane.rotated);
+    let valid=true;
+    for(const[nr,nc]of cells){
+      if(nr<0||nr>=SIZE||nc<0||nc>=SIZE){valid=false;break;}
+      if(boards[color][nr][nc]!==-1){valid=false;break;}
+    }
+    if(!valid)cells.length=0;
+    previewCells=cells;
+    const boardDiv=document.querySelector('.air-board');
+    if(boardDiv){
+      const allCells=boardDiv.children;
+      document.querySelectorAll('.air-cell.preview-valid').forEach(el=>el.classList.remove('preview-valid'));
+      cells.forEach(([rr,cc])=>{const idx=rr*SIZE+cc;if(allCells[idx])allCells[idx].classList.add('preview-valid');});
+    }
+  }
+  function placePlane(r,c,color){
+    if(!selectedPlane||selectedPlane.color!==color)return;
+    const cells=getPlaneCells(selectedPlane.typeIdx,r,c,selectedPlane.rotated);
+    for(const[nr,nc]of cells){
+      if(nr<0||nr>=SIZE||nc<0||nc>=SIZE)return;
+      if(boards[color][nr][nc]!==-1)return;
+    }
+    const placeIdx=planeCells[color].length;
+    cells.forEach(([rr,cc])=>{boards[color][rr][cc]=placeIdx;});
+    planeCells[color].push({typeIdx:selectedPlane.typeIdx,cells});
+    log.push(`${color==='red'?'🔴 红方':'🔵 蓝方'} 放置了 ${PLANE_DEFS[selectedPlane.typeIdx].name}`);
+    selectedPlane=null;previewCells=[];
+    render();
+  }
+  function renderBattlePhase(){
+    const div=document.createElement('div');
+    div.style.display='flex';div.style.flexDirection='column';div.style.gap='12px';div.style.alignItems='center';
+    const title=document.createElement('div');title.className='naval-phase';
+    title.textContent=`${curPlayer==='red'?'红方':'蓝方'}侦察 — 这是${battleView==='red'?'红方':'蓝方'}空域, 点击☁️揭开`;
+    div.appendChild(title);
+    const boardDiv=document.createElement('div');boardDiv.className='air-board';
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');cell.className='air-cell';
+      const v=boards[battleView][r][c];
+      const isHit=hits[battleView][r][c];
+      if(v>=0){
+        const plane=findPlaneAt(battleView,r,c);
+        if(plane&&isDown(battleView,plane))cell.classList.add('sunk');
+        else if(isHit)cell.classList.add('hit');
+        else{cell.classList.add('cloud');cell.onclick=()=>attack(r,c);}
+      }else{
+        if(isHit)cell.classList.add('miss');
+        else{cell.classList.add('cloud');cell.onclick=()=>attack(r,c);}
+      }
+      boardDiv.appendChild(cell);
+    }
+    div.appendChild(boardDiv);
+    return div;
+  }
+  function attack(r,c){
+    if(over||phase!=='battle')return;
+    const viewColor=battleView;
+    if(hits[viewColor][r][c])return;
+    hits[viewColor][r][c]=true;
+    const v=boards[viewColor][r][c];
+    let plane=null;
+    if(v>=0)plane=findPlaneAt(viewColor,r,c);
+    const attacker=curPlayer;
+    const viewName=viewColor==='red'?'红方':'蓝方';
+    if(v>=0&&plane){
+      if(isDown(viewColor,plane)){const score=PLANE_DEFS[plane.typeIdx].score;scores[attacker]+=score;log.push(`${attacker==='red'?'🔴 红方':'🔵 蓝方'} 侦察 (${r+1},${c+1}) 击落 ${viewName} ${PLANE_DEFS[plane.typeIdx].name} +${score}分`);}
+      else log.push(`${attacker==='red'?'🔴 红方':'🔵 蓝方'} 侦察 (${r+1},${c+1}) 命中 ${viewName} ${PLANE_DEFS[plane.typeIdx].name}`);
+    }else log.push(`${attacker==='red'?'🔴 红方':'🔵 蓝方'} 侦察 (${r+1},${c+1}) 未命中`);
+    if(allDown(viewColor)){over=true;winner=(attacker==='red'?'红方':'蓝方')+'获胜 (击落对方全部飞机)';log.push('🏆 '+winner);render();return;}
+    curPlayer=curPlayer==='red'?'blue':'red';
+    battleView=battleView==='red'?'blue':'red';
+    render();
+  }
+  document.getElementById('airRotate').onclick=()=>{if(selectedPlane){selectedPlane.rotated=!selectedPlane.rotated;previewCells=[];render();}};
+  document.getElementById('airConfirm').onclick=()=>{
+    if(phase==='place-red'){
+      if(!allPlaced('red')){alert('红方还有飞机未放置!');return;}
+      phase='place-blue';selectedPlane=null;previewCells=[];log.push('红方布置完成, 轮到蓝方');render();
+    }else if(phase==='place-blue'){
+      if(!allPlaced('blue')){alert('蓝方还有飞机未放置!');return;}
+      phase='battle';curPlayer='red';battleView='blue';selectedPlane=null;previewCells=[];log.push('双方布置完成, 开始对战! 红方先攻');render();
+    }
+  };
+  document.getElementById('airSettle').onclick=()=>{if(over)return;over=true;if(scores.red>scores.blue)winner=`红方获胜(分数 ${scores.red} vs ${scores.blue})`;else if(scores.blue>scores.red)winner=`蓝方获胜(分数 ${scores.red} vs ${scores.blue})`;else winner=`平局(双方分数 ${scores.red})`;log.push('📊 '+winner);render();};
+  document.getElementById('airRestart').onclick=()=>{
+    phase='place-red';
+    boards={red:Array.from({length:SIZE},()=>Array(SIZE).fill(-1)),blue:Array.from({length:SIZE},()=>Array(SIZE).fill(-1))};
+    hits={red:Array.from({length:SIZE},()=>Array(SIZE).fill(false)),blue:Array.from({length:SIZE},()=>Array(SIZE).fill(false))};
+    planeCells={red:[],blue:[]};selectedPlane=null;previewCells=[];
+    battleView='blue';curPlayer='red';scores={red:0,blue:0};over=false;winner=null;log=[];
+    render();
+  };
+  currentGameStateGetter=()=>({game:'air',boards,planeCells,hits,phase,battleView,curPlayer,scores,over,winner,log});
+  currentGameStateSetter=(s)=>{
+    boards=s.boards;planeCells=s.planeCells;hits=s.hits;phase=s.phase;battleView=s.battleView;
+    curPlayer=s.curPlayer;scores=s.scores;over=s.over;winner=s.winner;log=s.log||[];
+    selectedPlane=null;previewCells=[];render();
+  };
+  render();
+}
+
+/* ⑫ 军棋 */
+function initJunqi(container){
+  const COLS=5,ROWS=12;
+  const PIECE_DEFS=[
+    {name:'司令',rank:10,count:1},{name:'军长',rank:9,count:1},
+    {name:'师长',rank:8,count:2},{name:'旅长',rank:7,count:2},
+    {name:'团长',rank:6,count:2},{name:'营长',rank:5,count:2},
+    {name:'连长',rank:4,count:3},{name:'排长',rank:3,count:3},
+    {name:'工兵',rank:2,count:3},{name:'地雷',rank:1,count:3},
+    {name:'炸弹',rank:0,count:2},{name:'军旗',rank:-1,count:1}
+  ];
+  let board=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  let phase='place-red';
+  let placedPieces={red:[],blue:[]};
+  let selectedPool=null;
+  let curPlayer='red',over=false,winner=null;
+  let selected=null;
+  let log=[];
+  let redReady=false,blueReady=false;
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🎖️ 军棋 · 纯暗棋对战</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>状态</h4><div class="status-text" id="jqStatus">红方布阵</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="jqLog"></div></div>
+        <div class="panel"><h4>规则</h4><div class="rule-text">
+          5×12棋盘, 每方25枚棋子。布阵时可见, 点确定后完全隐藏(不能翻开)。双方都确定后开战: 点击己方棋子选中, 再点击相邻格子移动/攻击。攻击对方棋子直接结算: 按军衔大小吃子。<b>司令>军长>师长>旅长>团长>营长>连长>排长>工兵</b>。工兵可挖地雷, 炸弹与任何棋子同归于尽。军旗被吃则负。地雷不能移动。铁路可多步走。游戏结束后才能看到布局。
+        </div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="jqConfirm">✅ 确定</button>
+          <button class="act" id="jqSettle">📊 结算</button>
+          <button class="act" id="jqRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="jqWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('jqWrap');
+  const statusEl=document.getElementById('jqStatus');
+  const logEl=document.getElementById('jqLog');
+  function makeInitialPieces(){const arr=[];PIECE_DEFS.forEach(d=>{for(let i=0;i<d.count;i++)arr.push(d.name);});return arr;}
+  function isCamp(r,c){return (r===2&&(c===0||c===4))||(r===4&&c===2)||(r===9&&(c===0||c===4))||(r===7&&c===2);}
+  function isBase(r,c){return (r===5&&c===2)||(r===6&&c===2);}
+  function isRailroad(r,c){return r===1||r===10;}
+  function render(){
+    wrap.innerHTML='';
+    if(phase==='place-red'||phase==='place-blue')wrap.appendChild(renderPlacePhase(phase==='place-red'?'red':'blue'));
+    else wrap.appendChild(renderBattlePhase());
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(phase==='place-red'?'红方布阵':phase==='place-blue'?'蓝方布阵':(curPlayer==='red'?'红方走棋':'蓝方走棋'));
+    logEl.innerHTML=log.slice(-15).map(l=>`<div>${l}</div>`).join('');
+  }
+  function renderPlacePhase(color){
+    const div=document.createElement('div');div.className='junqi-place-wrap';
+    const boardDiv=document.createElement('div');boardDiv.className='junqi-board';
+    const myHalf=color==='red'?[6,11]:[0,5];
+    const myReady=color==='red'?redReady:blueReady;
+    const oppReady=color==='red'?blueReady:redReady;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=document.createElement('div');cell.className='junqi-cell';
+      if(isCamp(r,c))cell.classList.add('camp');
+      else if(isBase(r,c))cell.classList.add('base');
+      else if(isRailroad(r,c))cell.classList.add('railroad');
+      const p=board[r][c];
+      if(p){
+        const isMyPiece=p.color===color;
+        if((isMyPiece&&myReady)||(!isMyPiece&&oppReady)){
+          cell.classList.add('unknown-'+p.color);cell.textContent='?';
+        }else{
+          cell.classList.add(p.color+'-piece');cell.textContent=p.name;
+        }
+      }else if(r>=myHalf[0]&&r<=myHalf[1]&&!myReady){
+        cell.classList.add('empty');cell.style.cursor='pointer';cell.style.background='#fffbe8';
+        cell.onclick=()=>placePiece(r,c,color);
+      }else cell.classList.add('empty');
+      boardDiv.appendChild(cell);
+    }
+    div.appendChild(boardDiv);
+    if(!myReady){
+      const pool=document.createElement('div');pool.className='junqi-piece-pool';
+      const initial=makeInitialPieces();
+      const counts={};initial.forEach(n=>counts[n]=(counts[n]||0)+1);
+      placedPieces[color].forEach(n=>counts[n]--);
+      Object.keys(counts).forEach(name=>{
+        if(counts[name]<=0)return;
+        const item=document.createElement('div');item.className='pool-item '+color;
+        item.textContent=`${name} ×${counts[name]}`;
+        item.onclick=()=>{selectedPool=name;render();};
+        if(selectedPool===name)item.style.background='#fffbe8';
+        pool.appendChild(item);
+      });
+      div.appendChild(pool);
+    }
+    return div;
+  }
+  function placePiece(r,c,color){
+    if(!selectedPool)return;
+    if(board[r][c])return;
+    const myHalf=color==='red'?[6,11]:[0,5];
+    if(r<myHalf[0]||r>myHalf[1])return;
+    board[r][c]={color,name:selectedPool,revealed:true};
+    placedPieces[color].push(selectedPool);
+    selectedPool=null;
+    render();
+  }
+  function renderBattlePhase(){
+    const div=document.createElement('div');div.style.display='flex';div.style.flexDirection='column';div.style.alignItems='center';
+    const boardDiv=document.createElement('div');boardDiv.className='junqi-board';
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=document.createElement('div');cell.className='junqi-cell';
+      if(isCamp(r,c))cell.classList.add('camp');
+      else if(isBase(r,c))cell.classList.add('base');
+      else if(isRailroad(r,c))cell.classList.add('railroad');
+      const p=board[r][c];
+      if(p){
+        if(over){cell.classList.add(p.color+'-piece');cell.textContent=p.name;}
+        else{cell.classList.add('unknown-'+p.color);cell.textContent='?';}
+      }else cell.classList.add('empty');
+      if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add('selected');
+      if(selected){const[sr,sc]=selected;if(canMove(sr,sc,r,c))cell.classList.add('movable-hint');}
+      cell.onclick=()=>clickBattle(r,c);
+      boardDiv.appendChild(cell);
+    }
+    div.appendChild(boardDiv);
+    return div;
+  }
+  function clickBattle(r,c){
+    if(over||phase!=='battle')return;
+    const p=board[r][c];
+    if(selected){
+      const[sr,sc]=selected;
+      const from=board[sr][sc];
+      if(canMove(sr,sc,r,c)){
+        const target=board[r][c];
+        let text=`${from.color==='red'?'🔴 红方':'🔵 蓝方'} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+        if(target){
+          const result=judge(from,target);
+          if(result==='win'){
+            text += ` 吃 ${target.color==='red'?'🔴 红方':'🔵 蓝方'} ${target.name}`;
+            board[r][c]=from;board[sr][sc]=null;
+            if(target.name==='军旗'){over=true;winner=(from.color==='red'?'红方':'蓝方')+'获胜(夺旗)';log.push(text);log.push('🏆 '+winner);render();return;}
+          }else if(result==='lose'){
+            text += ` 被 ${target.color==='red'?'🔴 红方':'🔵 蓝方'} ${target.name} 吃掉`;
+            board[sr][sc]=null;
+          }else{
+            text += ` 与 ${target.color==='red'?'🔴 红方':'🔵 蓝方'} ${target.name} 同归于尽`;
+            board[r][c]=null;board[sr][sc]=null;
+          }
+        }else{board[r][c]=from;board[sr][sc]=null;}
+        log.push(text);
+        selected=null;
+        if(!over)switchTurn();
+        render();return;
+      }
+      selected=null;render();return;
+    }
+    if(p&&p.color===curPlayer){selected=[r,c];render();return;}
+  }
+  function canMove(sr,sc,tr,tc){
+    if(sr===tr&&sc===tc)return false;
+    const p=board[sr][sc];if(!p)return false;
+    if(p.name==='地雷'||p.name==='军旗')return false;
+    const target=board[tr][tc];
+    if(target&&target.color===p.color)return false;
+    const dr=tr-sr,dc=tc-sc;
+    if(isRailroad(sr,sc)&&isRailroad(tr,tc)){
+      if(dr===0){const step=Math.sign(dc);for(let c=sc+step;c!==tc;c+=step)if(board[sr][c])return false;return true;}
+      if(dc===0){const step=Math.sign(dr);for(let r=sr+step;r!==tr;r+=step)if(board[r][sc])return false;return true;}
+    }
+    if(Math.abs(dr)+Math.abs(dc)===1)return true;
+    return false;
+  }
+  function judge(attacker,defender){
+    if(attacker.name==='炸弹'||defender.name==='炸弹')return 'draw';
+    if(defender.name==='地雷'){if(attacker.name==='工兵')return 'win';return 'draw';}
+    if(defender.name==='军旗')return 'win';
+    const ar=getRank(attacker.name),dr=getRank(defender.name);
+    if(ar>dr)return 'win';
+    if(ar<dr)return 'lose';
+    return 'draw';
+  }
+  function getRank(name){const d=PIECE_DEFS.find(x=>x.name===name);return d?d.rank:-999;}
+  function switchTurn(){
+    curPlayer=curPlayer==='red'?'blue':'red';
+    let redFlag=false,blueFlag=false;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const p=board[r][c];
+      if(p&&p.name==='军旗'){if(p.color==='red')redFlag=true;else blueFlag=true;}
+    }
+    if(!redFlag&&!blueFlag){over=true;winner='平局(双方军旗均已失)';log.push('🏆 '+winner);}
+    else if(!redFlag){over=true;winner='蓝方获胜(夺旗)';log.push('🏆 '+winner);}
+    else if(!blueFlag){over=true;winner='红方获胜(夺旗)';log.push('🏆 '+winner);}
+  }
+  document.getElementById('jqConfirm').onclick=()=>{
+    if(phase==='place-red'){
+      if(placedPieces.red.length<25){alert(`红方还有${25-placedPieces.red.length}枚棋子未放置!`);return;}
+      redReady=true;phase='place-blue';selectedPool=null;
+      log.push('红方布阵完成并隐藏, 轮到蓝方');render();
+    }else if(phase==='place-blue'){
+      if(placedPieces.blue.length<25){alert(`蓝方还有${25-placedPieces.blue.length}枚棋子未放置!`);return;}
+      blueReady=true;phase='battle';curPlayer='red';selectedPool=null;
+      log.push('双方布阵完成, 开始对战! 红方先手');render();
+    }
+  };
+  document.getElementById('jqSettle').onclick=()=>{
+    if(over)return;over=true;
+    let redCount=0,blueCount=0;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const p=board[r][c];
+      if(p){if(p.color==='red')redCount++;else blueCount++;}
+    }
+    if(redCount>blueCount)winner=`红方获胜(红${redCount} vs 蓝${blueCount})`;
+    else if(blueCount>redCount)winner=`蓝方获胜(红${redCount} vs 蓝${blueCount})`;
+    else winner=`平局(双方各${redCount})`;
+    log.push('📊 '+winner);render();
+  };
+  document.getElementById('jqRestart').onclick=()=>{
+    board=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+    phase='place-red';placedPieces={red:[],blue:[]};selectedPool=null;
+    curPlayer='red';over=false;winner=null;selected=null;log=[];
+    redReady=false;blueReady=false;
+    render();
+  };
+  currentGameStateGetter=()=>({game:'junqi',board,phase,placedPieces,curPlayer,over,winner,log,redReady,blueReady});
+  currentGameStateSetter=(s)=>{
+    board=s.board;phase=s.phase;placedPieces=s.placedPieces;curPlayer=s.curPlayer;
+    over=s.over;winner=s.winner;log=s.log||[];redReady=s.redReady;blueReady=s.blueReady;
+    selectedPool=null;selected=null;render();
+  };
+  render();
+}
+
+/* ⑬ 双陆棋 */
+function initBackgammon(container){
+  let points=Array.from({length:24},()=>[]);
+  points[23]=Array(5).fill('white');
+  points[18]=Array(3).fill('white');
+  points[12]=Array(5).fill('white');
+  points[1]=Array(2).fill('white');
+  points[0]=Array(5).fill('black');
+  points[5]=Array(3).fill('black');
+  points[16]=Array(5).fill('black');
+  points[11]=Array(2).fill('black');
+  let whiteOut=0, blackOut=0;
+  let cur='white',over=false,winner=null;
+  let dice=[],usedDice=[];
+  let phase='roll';
+  let selectedPoint=null;
+  let log=[];
+  container.innerHTML=`
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🎲 双陆棋 · 西洋双陆</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>规则</h4><div class="rule-text">
+          白先黑后。掷两枚骰子, 按点数移动棋子。<br>
+          白方从23往0方向移动, 黑方从0往23方向移动。<br>
+          目标: 将全部15枚棋子移出棋盘。若点数被对方单子占住, 则不能停在该点。
+        </div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="bgStatus">⚪ 白方掷骰</div></div>
+        <div class="panel"><h4>棋盘信息</h4><div class="backgammon-info" id="bgInfo">白出: 0 / 黑出: 0</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="bgLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="bgResign">🏳️ 投降</button>
+          <button class="act" id="bgSettle">📊 结算</button>
+          <button class="act" id="bgRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="bgWrap"></div>
+    </div>
+  </div>`;
+  const wrap=document.getElementById('bgWrap'),statusEl=document.getElementById('bgStatus'),infoEl=document.getElementById('bgInfo');
+  function render(){
+    wrap.innerHTML='';
+    const d=document.createElement('div');d.className='backgammon-board';
+    const half1=document.createElement('div');half1.className='backgammon-half';
+    const half2=document.createElement('div');half2.className='backgammon-half';
+    function makePoint(idx,isBottom){
+      const p=document.createElement('div');
+      p.className='backgammon-point '+(idx%2===0?'dark-tri':'light-tri')+(isBottom?' bottom':'');
+      p.dataset.idx=idx;
+      if(selectedPoint===idx)p.classList.add('highlight');
+      const arr=points[idx];
+      const maxShow=5;
+      arr.slice(0,maxShow).forEach(color=>{
+        const c=document.createElement('div');c.className='checker '+color;
+        c.textContent=color==='white'?'○':'●';
+        p.appendChild(c);
+      });
+      if(arr.length>maxShow){
+        const more=document.createElement('div');more.style.fontSize='.7rem';more.textContent='+'+(arr.length-maxShow);p.appendChild(more);
+      }
+      p.onclick=()=>clickPoint(idx);
+      return p;
+    }
+    for(let i=0;i<6;i++)half1.appendChild(makePoint(12+i,false));
+    for(let i=0;i<6;i++)half1.appendChild(makePoint(6+i,true));
+    for(let i=0;i<6;i++)half2.appendChild(makePoint(18+i,false));
+    for(let i=0;i<6;i++)half2.appendChild(makePoint(0+i,true));
+    d.appendChild(half1);
+    const bar=document.createElement('div');bar.className='backgammon-bar';
+    for(let i=0;i<Math.min(3,whiteOut);i++){const c=document.createElement('div');c.className='checker white';bar.appendChild(c);}
+    for(let i=0;i<Math.min(3,blackOut);i++){const c=document.createElement('div');c.className='checker black';bar.appendChild(c);}
+    d.appendChild(bar);
+    d.appendChild(half2);
+    wrap.appendChild(d);
+    const diceArea=document.createElement('div');diceArea.className='backgammon-dice';
+    dice.forEach((v,i)=>{
+      const die=document.createElement('div');die.className='backgammon-die'+(usedDice.includes(i)?' used':'');
+      const symbols=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+      die.textContent=symbols[v];
+      if(!usedDice.includes(i)&&phase==='move')die.onclick=()=>useDie(i);
+      diceArea.appendChild(die);
+    });
+    wrap.appendChild(diceArea);
+    if(phase==='roll'&&!over){
+      const rollBtn=document.createElement('button');rollBtn.className='btn primary';rollBtn.textContent='🎲 掷骰子';
+      rollBtn.style.marginTop='12px';
+      rollBtn.onclick=rollDice;
+      wrap.appendChild(rollBtn);
+    }
+    statusEl.textContent=over?('🏆 '+(winner||'结束')):(cur==='white'?'⚪ 白方':'⚫ 黑方')+(phase==='roll'?' 掷骰':' 走棋');
+    infoEl.textContent=`白出: ${whiteOut}/15 · 黑出: ${blackOut}/15`;
+    renderLog('bgLog',log);
+  }
+  function rollDice(){
+    if(over||phase!=='roll')return;
+    const d1=Math.floor(Math.random()*6)+1;
+    const d2=Math.floor(Math.random()*6)+1;
+    dice=[d1,d2];
+    usedDice=[];
+    phase='move';
+    log.push(`🎲 ${cur==='white'?'⚪ 白方':'⚫ 黑方'} 掷出 ${d1}, ${d2}`);
+    render();
+  }
+  function useDie(i){
+    if(phase!=='move'||over)return;
+    const steps=dice[i];
+    if(selectedPoint!==null){
+      if(!moveFrom(selectedPoint,steps)){
+        selectedPoint=null;
+        usedDice.push(i);
+        render();
+        return;
+      }
+      usedDice.push(i);
+      selectedPoint=null;
+      if(usedDice.length>=dice.length) nextTurn();
+      render();
+    }else{
+      alert('请先点击要移动的棋子');
+    }
+  }
+  function clickPoint(idx){
+    if(over||phase!=='move')return;
+    const arr=points[idx];
+    if(selectedPoint===null){
+      if(arr.length>0&&arr[0]===cur){
+        selectedPoint=idx;
+        render();
+      }
+    }else{
+      const unusedIdx=dice.map((v,i)=>usedDice.includes(i)?-1:i).filter(i=>i>=0);
+      if(unusedIdx.length===0){selectedPoint=null;render();return;}
+      let moved=false;
+      for(const ui of unusedIdx){
+        const steps=dice[ui];
+        if(moveFrom(selectedPoint,steps)){
+          usedDice.push(ui);
+          moved=true;
+          break;
+        }
+      }
+      if(moved){
+        selectedPoint=null;
+        if(usedDice.length>=dice.length)nextTurn();
+      }else{
+        if(arr.length>0&&arr[0]===cur)selectedPoint=idx;
+        else selectedPoint=null;
+      }
+      render();
+    }
+  }
+  function moveFrom(from,steps){
+    const dir=cur==='white'?-1:1;
+    const target=from+dir*steps;
+    if(cur==='white'&&target<0){
+      let allHome=true;
+      for(let i=6;i<24;i++)if(points[i].some(c=>c==='white'))allHome=false;
+      if(!allHome)return false;
+      points[from].pop();
+      whiteOut++;
+      log.push(`⚪ 白方 ${from+1}→出棋`);
+      if(whiteOut>=15){over=true;winner='白方获胜';log.push('🏆 '+winner);}
+      return true;
+    }
+    if(cur==='black'&&target>23){
+      let allHome=true;
+      for(let i=0;i<18;i++)if(points[i].some(c=>c==='black'))allHome=false;
+      if(!allHome)return false;
+      points[from].pop();
+      blackOut++;
+      log.push(`⚫ 黑方 ${from+1}→出棋`);
+      if(blackOut>=15){over=true;winner='黑方获胜';log.push('🏆 '+winner);}
+      return true;
+    }
+    if(target<0||target>23)return false;
+    const t=points[target];
+    if(t.length>0&&t[0]!==cur){
+      if(t.length>=2)return false;
+      t.pop();
+      log.push(`${cur==='white'?'⚪ 白方':'⚫ 黑方'} ${from+1}→${target+1} 吃子`);
+    } else {
+      log.push(`${cur==='white'?'⚪ 白方':'⚫ 黑方'} ${from+1}→${target+1}`);
+    }
+    points[from].pop();
+    points[target].push(cur);
+    return true;
+  }
+  function nextTurn(){
+    cur=cur==='white'?'black':'white';
+    dice=[];
+    usedDice=[];
+    phase='roll';
+    selectedPoint=null;
+  }
+  document.getElementById('bgResign').onclick=()=>{if(over)return;over=true;winner=cur==='white'?'黑方胜(白投降)':'白方胜(黑投降)';log.push('🏳️ '+winner);render();};
+  document.getElementById('bgSettle').onclick=()=>{
+    if(over)return;
+    over=true;
+    if(whiteOut>blackOut)winner=`白方获胜(白出${whiteOut} vs 黑出${blackOut})`;
+    else if(blackOut>whiteOut)winner=`黑方获胜(白出${whiteOut} vs 黑出${blackOut})`;
+    else winner=`平局(白出${whiteOut} 黑出${blackOut})`;
+    log.push('📊 '+winner);render();
+  };
+  document.getElementById('bgRestart').onclick=()=>{
+    points=Array.from({length:24},()=>[]);
+    points[23]=Array(5).fill('white');
+    points[18]=Array(3).fill('white');
+    points[12]=Array(5).fill('white');
+    points[1]=Array(2).fill('white');
+    points[0]=Array(5).fill('black');
+    points[5]=Array(3).fill('black');
+    points[16]=Array(5).fill('black');
+    points[11]=Array(2).fill('black');
+    whiteOut=0;blackOut=0;
+    cur='white';over=false;winner=null;dice=[];usedDice=[];phase='roll';selectedPoint=null;log=[];
+    render();
+  };
+  currentGameStateGetter=()=>({game:'backgammon',points,whiteOut,blackOut,cur,over,winner,dice,usedDice,phase,log});
+  currentGameStateSetter=(s)=>{
+    points=s.points;whiteOut=s.whiteOut;blackOut=s.blackOut;cur=s.cur;over=s.over;winner=s.winner;
+    dice=s.dice||[];usedDice=s.usedDice||[];phase=s.phase;log=s.log||[];selectedPoint=null;render();
+  };
+  render();
+}
+
+/* ⑭ 大富翁 */
+function initMonopoly(container){
+  const PORTALS = [0, 60];
+  const JAILS = [14];
+  const HOSPITALS = [42];
+  const BANKS = [28, 68];
+  const CHANCES = [5, 9, 19, 23, 33, 37, 47, 51, 64, 72];
+
+  let totalPlayers = 2;
+  let players = [];
+  let curPlayer = 0;
+  let over = false;
+  let winner = null;
+  let log = [];
+  let round = 1;
+  let turnCount = 0;
+  let bankOpen = false;
+  let properties = [];
+
+  function initGame() {
+    players = [];
+    for (let i = 0; i < totalPlayers; i++) {
+      players.push({
+        id: i, name: '玩家' + (i + 1),
+        color: ['#e74c3c', '#3498db', '#27ae60', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c', '#34495e', '#e84393', '#8B4513'][i],
+        money: 1000, bank: 0, pos: Math.floor(Math.random() * 80),
+        jailTurns: 0, hospitalTurns: 0, skipTurns: 0,
+        discount: false, bankrupt: false
+      });
+    }
+    players.forEach(p => {
+      while ([0, 14, 28, 42, 60, 68, 56, 57, 58, 59, 76, 77, 78, 79].includes(p.pos)) {
+        p.pos = Math.floor(Math.random() * 80);
+      }
+    });
+    curPlayer = 0; over = false; winner = null; log = []; round = 1; turnCount = 0; bankOpen = false;
+    properties = Array.from({ length: 80 }, () => ({ owner: null, level: 0, rent: 0 }));
+  }
+
+  function getCellPos(i) {
+    const W = 100 / 15;
+    const INNER_W = 60 / 5;
+    if (i < 60) {
+      if (i < 15) { return { left: i * W, top: 0, w: W, h: W }; }
+      else if (i < 29) { return { left: 100 - W, top: (i - 14) * W, w: W, h: W }; }
+      else if (i < 43) { return { left: 100 - W - (i - 28) * W, top: 100 - W, w: W, h: W }; }
+      else { return { left: 0, top: 100 - W - (i - 42) * W, w: W, h: W }; }
+    } else {
+      const j = i - 60;
+      if (j === 0) return { left: 20, top: 20, w: INNER_W, h: INNER_W };
+      else if (j < 5) return { left: 20 + j * INNER_W, top: 20, w: INNER_W, h: INNER_W };
+      else if (j === 5) return { left: 80 - INNER_W, top: 20 + INNER_W, w: INNER_W, h: INNER_W };
+      else if (j < 9) return { left: 80 - INNER_W, top: 20 + (j - 4) * INNER_W, w: INNER_W, h: INNER_W };
+      else if (j === 9) return { left: 80 - 2 * INNER_W, top: 80 - INNER_W, w: INNER_W, h: INNER_W };
+      else if (j < 13) return { left: Math.max(20, 80 - INNER_W - (j - 8) * INNER_W), top: 80 - INNER_W, w: INNER_W, h: INNER_W };
+      else if (j === 13) return { left: 20, top: 80 - 2 * INNER_W, w: INNER_W, h: INNER_W };
+      else return { left: 20, top: Math.max(20, 80 - INNER_W - (j - 12) * INNER_W), w: INNER_W, h: INNER_W };
+    }
+  }
+
+  function rentOf(prop) {
+    if (!prop || prop.owner === null || prop.rent === 0) return 0;
+    let mult = 1;
+    if (round >= 6) mult = Math.pow(2, round - 5);
+    return prop.rent * mult;
+  }
+
+  container.innerHTML = `
+  <div class="game-page active">
+    <div class="game-head"><div class="game-title">🏠 大富翁 · 外56格 + 内16格 · 传送门</div></div>
+    <div class="game-body">
+      <div class="sidebar">
+        <div class="panel"><h4>设置人数 (2-10人)</h4><div class="mono-setup" id="monoSetup"></div></div>
+        <div class="panel"><h4>规则</h4><div class="rule-text">
+          每人开局 1000 元，资金 ≤ 0 时强制卖出所有房产并取出存款，总额 ≥ 1000 复活，否则淘汰。<br>
+          空地购买 100，别人踩上付 10。<br>
+          升级一次 200，租金 20；升级两次 500，租金 50。<br>
+          从第 6 轮开始，租金每过 1 轮翻一倍。<br>
+          所有玩家各走完一次 = 1 轮。<br>
+          银行第 1 轮不开，之后每轮开放；开放时存款产生 20% 利息（利息加到资金里，存款不变）。<br>
+          踩到银行格存 20% 资金。<br>
+          进监狱/医院/抽中跳过，会强制跳过下个回合。<br>
+          掷出 6 或 12 可再投一次。<br>
+          经过起点获 200 元。外圈 0 传内圈 60，内圈 60 传外圈 0。<br>
+          机会有概率抽中"百万英镑"，直接存入银行存款。<br>
+          斩杀线：当资金 ≤ 0 时，会先扣除 1000 斩杀线，如果卖完所有资产仍不够复活，直接破产。
+        </div></div>
+        <div class="panel"><h4>状态</h4><div class="status-text" id="monoStatus">玩家1 掷骰</div></div>
+        <div class="panel"><h4>日志</h4><div class="naval-log" id="monoLog"></div></div>
+        <div class="panel"><h4>功能</h4><div class="actions">
+          <button class="act" id="monoResign">🏳️ 投降</button>
+          <button class="act" id="monoSettle">📊 结算</button>
+          <button class="act" id="monoRestart">🔄 重开</button>
+        </div></div>
+      </div>
+      <div class="board-wrap" id="monoWrap"></div>
+    </div>
+  </div>`;
+
+  const wrap = document.getElementById('monoWrap');
+  const statusEl = document.getElementById('monoStatus');
+  const logEl = document.getElementById('monoLog');
+  const setupBox = document.getElementById('monoSetup');
+  const tooltip = document.getElementById('cellTooltip');
+
+  function render() {
+    wrap.innerHTML = '';
+    const d = document.createElement('div');
+    d.className = 'monopoly-wrap';
+    const board = document.createElement('div');
+    board.className = 'mono-board';
+
+    for (let i = 0; i < 80; i++) {
+      const pos = getCellPos(i);
+      const cellDiv = document.createElement('div');
+      cellDiv.className = 'mono-cell';
+      cellDiv.style.left = pos.left + '%';
+      cellDiv.style.top = pos.top + '%';
+      cellDiv.style.width = pos.w + '%';
+      cellDiv.style.height = pos.h + '%';
+
+      const numDiv = document.createElement('div');
+      numDiv.className = 'cell-num';
+      numDiv.textContent = i;
+      cellDiv.appendChild(numDiv);
+
+      if (PORTALS.includes(i)) {
+        cellDiv.classList.add('portal');
+        cellDiv.innerHTML += '<div class="name">传送门</div>';
+        cellDiv.style.zIndex = '15';
+      } else if (JAILS.includes(i)) {
+        cellDiv.classList.add('jail');
+        cellDiv.innerHTML += '<div class="name">监狱</div>';
+      } else if (HOSPITALS.includes(i)) {
+        cellDiv.classList.add('hospital');
+        cellDiv.innerHTML += '<div class="name">医院</div>';
+      } else if (BANKS.includes(i)) {
+        cellDiv.classList.add('bank');
+        cellDiv.innerHTML += '<div class="name">银行</div>';
+      } else if (CHANCES.includes(i)) {
+        cellDiv.classList.add('chance');
+        cellDiv.innerHTML += '<div class="name">机会</div>';
+      } else {
+        cellDiv.innerHTML += '<div class="name">空地</div><div class="price">$100</div>';
+        const prop = properties[i];
+        if (prop.owner !== null) {
+          const bar = document.createElement('div');
+          bar.className = 'mono-owner-bar';
+          bar.style.background = players[prop.owner].color;
+          cellDiv.appendChild(bar);
+          const house = document.createElement('div');
+          house.className = 'mono-house';
+          if (prop.level === 1) house.textContent = '🏠';
+          else if (prop.level === 2) house.textContent = '🏡';
+          else if (prop.level === 3) house.textContent = '🏢';
+          cellDiv.appendChild(house);
+        }
+      }
+
+      cellDiv.onmouseenter = (e) => {
+        let info = `<strong>[${i}] 号格</strong><br>`;
+        if (PORTALS.includes(i)) info += "功能：传送门<br>暂无信息";
+        else if (JAILS.includes(i)) info += "功能：监狱<br>暂无信息";
+        else if (HOSPITALS.includes(i)) info += "功能：医院<br>暂无信息";
+        else if (BANKS.includes(i)) info += "功能：银行<br>暂无信息";
+        else if (CHANCES.includes(i)) info += "功能：机会<br>暂无信息";
+        else {
+          const prop = properties[i];
+          if (prop.owner === null) info += "空地<br>暂无信息";
+          else {
+            const ownerName = players[prop.owner].name;
+            const basePrice = prop.level === 1 ? 100 : (prop.level === 2 ? 300 : 800);
+            const currentRent = rentOf(prop);
+            info += `所有者：<span style="color:${players[prop.owner].color}">${ownerName}</span><br>`;
+            info += `价值：$${basePrice}<br>当前租金：$${currentRent}`;
+          }
+        }
+        tooltip.innerHTML = info;
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 15) + 'px';
+        tooltip.style.top = (e.clientY + 15) + 'px';
+      };
+      cellDiv.onmouseleave = () => { tooltip.style.display = 'none'; };
+
+      board.appendChild(cellDiv);
+    }
+
+    players.forEach(p => {
+      if (p.bankrupt) return;
+      const pos = getCellPos(p.pos);
+      const centerLeft = pos.left + pos.w / 2;
+      const centerTop = pos.top + pos.h / 2;
+      const piece = document.createElement('div');
+      piece.className = 'mono-piece';
+      piece.style.background = p.color;
+      piece.style.left = centerLeft + '%';
+      piece.style.top = centerTop + '%';
+      piece.style.transform = 'translate(-50%, -50%)';
+      piece.style.marginLeft = (p.id * 4 - (totalPlayers - 1) * 2) + 'px';
+      board.appendChild(piece);
+    });
+
+    d.appendChild(board);
+
+    const panel = document.createElement('div');
+    panel.className = 'mono-panel';
+    players.forEach((p, i) => {
+      const card = document.createElement('div');
+      card.className = 'mono-player-card' + (i === curPlayer && !over && !p.bankrupt ? ' active' : '') + (p.bankrupt ? ' bankrupt' : '');
+      let status = '';
+      if (p.jailTurns > 0) status = ' (🚔监狱)';
+      else if (p.hospitalTurns > 0) status = ' (🏥医院)';
+      else if (p.skipTurns > 0) status = ' (💤跳过)';
+      let html = `<div style="color:${p.color}">${p.name}${status}${p.bankrupt ? ' 💀' : ''}</div>`;
+      if (p.bankrupt) html += `<div class="mono-bankrupt-label">破产</div>`;
+      else {
+        html += `<div class="mono-money">$${p.money}</div>`;
+        if (p.bank > 0) html += `<div class="mono-bank">($${p.bank})</div>`;
+      }
+      card.innerHTML = html;
+      panel.appendChild(card);
+    });
+    d.appendChild(panel);
+
+    if (!over) {
+      const rollBtn = document.createElement('button');
+      rollBtn.className = 'btn primary';
+      const p = players[curPlayer];
+      let btnText = `🎲 ${p.name} 掷骰子 (第${round}轮${bankOpen ? ' · 银行开' : ' · 银行关'})`;
+      if (p.jailTurns > 0) btnText = `🚔 ${p.name} 在监狱中 (点击消耗回合)`;
+      if (p.hospitalTurns > 0) btnText = `🏥 ${p.name} 在医院中 (点击消耗回合)`;
+      if (p.skipTurns > 0) btnText = `💤 ${p.name} 被跳过 (点击消耗回合)`;
+      rollBtn.textContent = btnText;
+      rollBtn.style.marginTop = '12px';
+      rollBtn.onclick = rollDice;
+      if (p.bankrupt) rollBtn.disabled = true;
+      d.appendChild(rollBtn);
+    }
+
+    wrap.appendChild(d);
+
+    const p = players[curPlayer];
+    let statusText = `${p.name} 的回合 · 第 ${round} 轮`;
+    if (p.jailTurns > 0) statusText += ` (🚔监狱剩余${p.jailTurns}轮)`;
+    if (p.hospitalTurns > 0) statusText += ` (🏥医院剩余${p.hospitalTurns}轮)`;
+    if (p.skipTurns > 0) statusText += ` (💤跳过剩余${p.skipTurns}轮)`;
+    statusEl.textContent = over ? ('🏆 ' + (winner || '结束')) : statusText;
+    logEl.innerHTML = log.slice(-15).map(l => `<div>${l}</div>`).join('');
+    logEl.scrollTop = logEl.scrollHeight;
+
+    buildSetup();
+  }
+
+  function buildSetup() {
+    if (!setupBox) return;
+    setupBox.innerHTML = '';
+    for (let i = 2; i <= 10; i++) {
+      const b = document.createElement('button');
+      b.className = 'act';
+      b.textContent = i + '人';
+      if (totalPlayers === i) b.style.background = '#e8dcc0';
+      b.onclick = () => {
+        totalPlayers = i;
+        initGame();
+        render();
+      };
+      setupBox.appendChild(b);
+    }
+  }
+
+  function nextTurn() {
+    let next = (curPlayer + 1) % players.length;
+    let guard = 0;
+    while ((players[next].bankrupt || players[next].money <= 0) && guard < players.length) {
+      next = (next + 1) % players.length;
+      guard++;
+    }
+    curPlayer = next;
+    turnCount++;
+    const aliveCount = players.filter(p => !p.bankrupt).length;
+    if (turnCount >= aliveCount) {
+      turnCount = 0;
+      round++;
+      bankOpen = (round > 1);
+      if (bankOpen) {
+        players.forEach(p => {
+          if (!p.bankrupt && p.bank > 0) {
+            const interest = Math.floor(p.bank * 0.2);
+            p.money += interest;
+            log.push(`🏦 ${p.name} 存款利息 +$${interest}（加到资金，银行开放）`);
+          }
+        });
+      }
+      log.push(`📅 进入第 ${round} 轮，银行${bankOpen ? '开放' : '关闭'}`);
+    }
+  }
+
+  function rollDice() {
+    if (over) return;
+    const p = players[curPlayer];
+    if (p.bankrupt) return;
+
+    if (p.jailTurns > 0) {
+      p.jailTurns--;
+      if (p.jailTurns > 0) log.push(`🚔 ${p.name} 在监狱中，消耗回合并跳过（剩余 ${p.jailTurns} 轮）`);
+      else log.push(`🚔 ${p.name} 刑满释放，下回合正常行动`);
+      nextTurn(); render(); return;
+    }
+    if (p.hospitalTurns > 0) {
+      p.hospitalTurns--;
+      if (p.hospitalTurns > 0) log.push(`🏥 ${p.name} 在医院中，消耗回合并跳过（剩余 ${p.hospitalTurns} 轮）`);
+      else log.push(`🏥 ${p.name} 康复出院，下回合正常行动`);
+      nextTurn(); render(); return;
+    }
+    if (p.skipTurns > 0) {
+      p.skipTurns--;
+      if (p.skipTurns > 0) log.push(`💤 ${p.name} 被罚跳过，消耗回合并跳过（剩余 ${p.skipTurns} 轮）`);
+      else log.push(`💤 ${p.name} 跳过结束，下回合正常行动`);
+      nextTurn(); render(); return;
+    }
+
+    const d1 = Math.floor(Math.random() * 6) + 1;
+    const d2 = Math.floor(Math.random() * 6) + 1;
+    const steps = d1 + d2;
+    const oldPos = p.pos;
+    log.push(`🎲 ${p.name} 掷出 ${d1}+${d2}=${steps}`);
+
+    let newPos = oldPos;
+    let crossedStart = false;
+    if (oldPos < 60) {
+      let current = oldPos;
+      for (let i = 0; i < steps; i++) {
+        current++;
+        if (current > 55) { current = 0; crossedStart = true; }
+      }
+      newPos = current;
+    } else {
+      let current = oldPos;
+      for (let i = 0; i < steps; i++) {
+        current++;
+        if (current > 75) { current = 60; crossedStart = true; }
+      }
+      newPos = current;
+    }
+
+    if (crossedStart) {
+      p.money += 200;
+      log.push(`💰 ${p.name} 经过起点，获得 $200`);
+    }
+
+    if (newPos === 0) {
+      newPos = 60;
+      log.push(`🌀 ${p.name} 落在传送门 [0号格]，切换到内圈 [60号格]`);
+    } else if (newPos === 60) {
+      newPos = 0;
+      log.push(`🌀 ${p.name} 落在传送门 [60号格]，切换到外圈 [0号格]`);
+    }
+
+    log.push(`🚶 ${p.name} 从 [${oldPos}号格] 移动到 [${newPos}号格]`);
+    p.pos = newPos;
+    render();
+
+    setTimeout(() => handleCell(p, () => {
+      if (p.bankrupt) {
+        nextTurn();
+        render();
+        return;
+      }
+      if (d1 === 6 || steps === 12) {
+        log.push(`🎉 ${p.name} 掷出 ${steps === 12 ? '双六' : '6点'}，再投一次！`);
+        render();
+      } else {
+        nextTurn();
+        render();
+      }
+    }), 300);
+  }
+
+  function handleCell(p, callback) {
+    const pos = p.pos;
+    if (PORTALS.includes(pos)) { if (!over) callback(); return; }
+    if (JAILS.includes(pos)) {
+      p.jailTurns = 1; log.push(`🚔 ${p.name} 进了监狱1轮`);
+      render(); if (!over) callback(); return;
+    }
+    if (HOSPITALS.includes(pos)) {
+      p.hospitalTurns = 1; log.push(`🏥 ${p.name} 进了医院1轮`);
+      render(); if (!over) callback(); return;
+    }
+    if (BANKS.includes(pos)) {
+      const deposit = Math.floor(p.money * 0.2);
+      p.money -= deposit; p.bank += deposit;
+      log.push(`🏦 ${p.name} 在银行存入 $${deposit}，当前存款 $${p.bank}`);
+      render(); if (!over) callback(); return;
+    }
+    if (CHANCES.includes(pos)) {
+      const card = Math.floor(Math.random() * 7);
+      if (card === 0) { p.pos = 14; p.jailTurns = 2; log.push(`🚔 抽到卡：进监狱2轮 (移动到 14号格)`); }
+      else if (card === 1) { p.pos = 42; p.hospitalTurns = 2; log.push(`🏥 抽到卡：进医院2轮 (移动到 42号格)`); }
+      else if (card === 2) { p.discount = true; log.push(`🎟️ 抽到卡：下次买楼半价`); }
+      else if (card === 3) { p.money += 100; log.push(`💰 抽到卡：获得 $100`); }
+      else if (card === 4) { p.money -= 50; log.push(`💸 抽到卡：扣除 $50`); }
+      else if (card === 5) { p.skipTurns = 1; log.push(`💤 抽到卡：跳过一轮`); }
+      else { p.bank += 1000000; log.push(`💷 抽到卡：百万英镑！银行存款增加 $1,000,000！`); }
+      render(); if (!over) callback(); return;
+    }
+
+    const prop = properties[pos];
+    if (prop.owner === null) {
+      let buyPrice = 100;
+      if (p.discount) { buyPrice = 50; p.discount = false; log.push('🎟️ 使用低价买楼权！'); }
+      if (p.money >= buyPrice) {
+        prop.owner = p.id; prop.level = 1; prop.rent = 10; p.money -= buyPrice;
+        log.push(`✅ ${p.name} 购买了地皮，花费 $${buyPrice}`);
+      } else {
+        log.push(`❌ ${p.name} 资金不足，无法购买`);
+      }
+    } else if (prop.owner !== p.id) {
+      const rent = rentOf(prop);
+      p.money -= rent;
+      players[prop.owner].money += rent;
+      log.push(`💸 ${p.name} 向 ${players[prop.owner].name} 支付租金 $${rent}（第${round}轮，翻倍×${round >= 6 ? Math.pow(2, round - 5) : 1}）`);
+    } else {
+      if (prop.level === 1 && p.money >= 200) {
+        prop.level = 2; prop.rent = 20; p.money -= 200;
+        log.push(`⬆️ ${p.name} 升级到 🏡 2级，花费 $200`);
+      } else if (prop.level === 2 && p.money >= 500) {
+        prop.level = 3; prop.rent = 50; p.money -= 500;
+        log.push(`⬆️ ${p.name} 升级到 🏢 3级，花费 $500`);
+      } else {
+        log.push(`🏠 ${p.name} 停留在自己的地产上`);
+      }
+    }
+
+    if (p.money <= 0) {
+      log.push(`💀 ${p.name} 资金见底，开始变卖所有房产并取出存款...`);
+      let totalCash = 0;
+      properties.forEach((c, idx) => {
+        if (c.owner === p.id) {
+          let val = 100;
+          if (c.level === 2) val = 300;
+          else if (c.level === 3) val = 800;
+          totalCash += val;
+          log.push(`🏠 卖出 (${idx + 1}号格) 房产，回收 $${val}`);
+          c.owner = null; c.level = 0; c.rent = 0;
+        }
+      });
+      if (p.bank > 0) {
+        log.push(`🏦 取出存款 $${p.bank}`);
+        totalCash += p.bank; p.bank = 0;
+      }
+      p.money = totalCash;
+      log.push(`💰 ${p.name} 变卖后共有 $${totalCash}，扣除 1000 斩杀线...`);
+      if (p.money >= 1000) {
+        p.money -= 1000;
+        log.push(`✨ ${p.name} 资产达标，扣除 1000 斩杀线后余 $${p.money}，成功复活！`);
+      } else {
+        p.bankrupt = true;
+        p.money = 0;
+        log.push(`💀 ${p.name} 资产不足 $1000，无法跨过斩杀线，宣告破产淘汰`);
+      }
+    }
+
+    checkWin();
+    render();
+    if (!over) callback();
+  }
+
+  function checkWin() {
+    const alive = players.filter(p => !p.bankrupt && p.money > 0);
+    if (alive.length <= 1) {
+      over = true;
+      winner = alive.length === 1 ? alive[0].name + ' 获胜' : '平局';
+      log.push(`🏆 ${winner}`);
+    }
+  }
+
+  document.getElementById('monoResign').onclick = () => {
+    if (over) return;
+    const p = players[curPlayer];
+    if (p.bankrupt) return;
+    p.bankrupt = true; p.money = 0;
+    log.push(`🏳️ ${p.name} 投降，破产淘汰`);
+    checkWin();
+    if (!over) nextTurn();
+    render();
+  };
+
+  document.getElementById('monoSettle').onclick = () => {
+    if (over) return;
+    over = true;
+    const alive = players.filter(p => !p.bankrupt);
+    if (alive.length === 0) {
+      winner = '平局';
+      log.push('📊 结算：全员破产，平局');
+    } else {
+      let maxAssets = -1;
+      alive.forEach(p => {
+        const total = p.money + p.bank;
+        if (total > maxAssets) maxAssets = total;
+      });
+      const winners = alive.filter(p => (p.money + p.bank) === maxAssets);
+      if (winners.length === 1) {
+        winner = winners[0].name + ' 获胜';
+        log.push(`📊 结算：${winners[0].name} 获胜（总资产 $${maxAssets}）`);
+      } else {
+        winner = winners.map(p => p.name).join('、') + ' 并列获胜';
+        log.push(`📊 结算：${winner}（总资产 $${maxAssets}）`);
+      }
+    }
+    render();
+  };
+
+  document.getElementById('monoRestart').onclick = () => {
+    initGame();
+    render();
+  };
+
+  currentGameStateGetter = () => ({
+    game: 'monopoly',
+    totalPlayers, players, curPlayer, over, winner, log, round, turnCount, bankOpen, properties
+  });
+  currentGameStateSetter = (s) => {
+    totalPlayers = s.totalPlayers;
+    players = s.players;
+    curPlayer = s.curPlayer;
+    over = s.over;
+    winner = s.winner;
+    log = s.log || [];
+    round = s.round;
+    turnCount = s.turnCount;
+    bankOpen = s.bankOpen;
+    properties = s.properties;
+    render();
+  };
+
+  initGame();
+  buildSetup();
+  render();
+}
+
+/* ============================================================
+   保存/读取
+   ============================================================ */
+document.getElementById('saveBtn').onclick = (e) => {
+  e.stopPropagation();
+  if (currentGameCanSave && !currentGameCanSave()) {
+    alert('当前状态无法保存（如升变中），请先完成升变');
+    saveDropdown.classList.remove('open');
+    return;
+  }
+  saveDropdown.classList.toggle('open');
+  loadDropdown.classList.remove('open');
+};
+document.getElementById('loadBtn').onclick = (e) => {
+  e.stopPropagation();
+  loadDropdown.classList.toggle('open');
+  saveDropdown.classList.remove('open');
+};
+document.addEventListener('click', () => {
+  saveDropdown.classList.remove('open');
+  loadDropdown.classList.remove('open');
+});
+
+document.getElementById('saveLocal').onclick = () => {
+  if (!currentGameStateGetter) { alert('当前没有正在进行的棋局'); return; }
+  if (currentGameCanSave && !currentGameCanSave()) {
+    alert('当前状态无法保存（如升变中），请先完成升变');
+    saveDropdown.classList.remove('open');
+    return;
+  }
+  const state = currentGameStateGetter();
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `棋局_${state.game}_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  saveDropdown.classList.remove('open');
+};
+
+document.getElementById('saveBrowser').onclick = () => {
+  if (!currentGameStateGetter) { alert('当前没有正在进行的棋局'); return; }
+  if (currentGameCanSave && !currentGameCanSave()) {
+    alert('当前状态无法保存（如升变中），请先完成升变');
+    saveDropdown.classList.remove('open');
+    return;
+  }
+  const state = currentGameStateGetter();
+  localStorage.setItem('qile_saved_game', JSON.stringify(state));
+  alert('已保存到浏览器缓存');
+  saveDropdown.classList.remove('open');
+};
+
+document.getElementById('loadLocal').onclick = () => {
+  document.getElementById('fileInput').click();
+  loadDropdown.classList.remove('open');
+};
+
+document.getElementById('fileInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const state = JSON.parse(ev.target.result);
+      loadState(state);
+    } catch (err) {
+      alert('文件解析失败：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+document.getElementById('loadBrowser').onclick = () => {
+  const raw = localStorage.getItem('qile_saved_game');
+  if (!raw) { alert('浏览器中没有保存的棋局'); return; }
+  try {
+    const state = JSON.parse(raw);
+    loadState(state);
+  } catch (err) {
+    alert('读取失败：' + err.message);
+  }
+  loadDropdown.classList.remove('open');
+};
+
+function loadState(state) {
+  if (!state || !state.game) { alert('无效的棋局文件'); return; }
+  const g = GAME_LIST.find(x => x.id === state.game);
+  if (!g) { alert('未知的游戏类型：' + state.game); return; }
+  if (currentGameId !== state.game) {
+    location.hash = '/' + state.game;
+  }
+  setTimeout(() => {
+    if (currentGameStateSetter) {
+      currentGameStateSetter(state);
+    } else {
+      setTimeout(() => {
+        if (currentGameStateSetter) currentGameStateSetter(state);
+        else alert('无法恢复棋局，请重新进入该游戏后再试');
+      }, 200);
+    }
+  }, 200);
+}
+
+/* ============================================================
+   BGM
+   ============================================================ */
+const bgmAudio = document.getElementById('bgmAudio');
+let bgmPlaying = false;
+document.getElementById('bgmBtn').onclick = function(){
+  if(bgmPlaying){bgmAudio.pause();this.textContent='🎵 BGM 关';bgmPlaying=false;}
+  else{bgmAudio.play().then(()=>{this.textContent='🎵 BGM 开';bgmPlaying=true;}).catch(()=>{this.textContent='🎵 BGM 关';bgmPlaying=false;});}
+};
+
+/* ============================================================
+   启动
+   ============================================================ */
+renderEntries();
+// 初始创建第二行（空行，只有加号）
+createDlcRow('DLC 扩展', false);
+route();
+</script>
+</body>
+</html>

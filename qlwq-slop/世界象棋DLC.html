@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>世界象棋 DLC</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#f7f5f0;color:#3a3226;min-height:100vh;display:flex;justify-content:center;padding:14px}
+.app{width:100%;max-width:1220px;display:flex;flex-direction:column;gap:18px}
+.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.logo{font-size:1.7rem;font-weight:800;color:#8b6b3d;letter-spacing:3px}
+.btn{background:#fff;border:1px solid #d9c8a9;color:#6b5636;padding:8px 20px;border-radius:40px;cursor:pointer;font-size:.9rem;transition:.2s;box-shadow:0 2px 6px rgba(150,130,90,.1)}
+.btn:hover{background:#f0e6d2}
+.hall{display:flex;flex-direction:column;gap:14px}
+.hall-title{font-size:.9rem;color:#a89878;letter-spacing:1px}
+.entries{display:flex;gap:18px;overflow-x:auto;padding:16px 6px 24px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.entries::-webkit-scrollbar{height:8px}
+.entries::-webkit-scrollbar-thumb{background:#d9c8a9;border-radius:10px}
+.entry{scroll-snap-align:start;flex:0 0 170px;height:480px;background:#fff;border-radius:24px;padding:24px 16px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:all .3s cubic-bezier(.2,.9,.3,1.2);opacity:.55;box-shadow:0 4px 12px rgba(150,130,90,.1);border:2px solid transparent;position:relative;overflow:hidden;text-align:center}
+.entry:hover{opacity:.85;transform:translateY(-4px)}
+.entry .ico{font-size:4rem;line-height:1;margin-top:40px;display:flex;justify-content:center;align-items:center}
+.entry .nm{font-size:1.15rem;font-weight:800;color:#6b5636}
+.entry .sub{font-size:.72rem;color:#a89878;background:#f7f3ec;padding:6px 10px;border-radius:20px;display:inline-block;margin-bottom:30px}
+.game-page{display:none;flex-direction:column;gap:16px}
+.game-page.active{display:flex}
+.game-head{display:flex;justify-content:space-between;align-items:center}
+.game-title{font-size:1.3rem;font-weight:800;color:#6b5636}
+.game-body{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.sidebar{flex:0 0 280px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:800px){.sidebar{flex:1 1 100%}}
+.panel{background:#fff;border:1px solid #ede3d0;border-radius:18px;padding:16px;box-shadow:0 4px 12px rgba(150,130,90,.06)}
+.panel h4{font-size:.8rem;color:#a89878;font-weight:700;margin-bottom:10px;letter-spacing:1.5px;text-transform:uppercase}
+.rule-text{font-size:.82rem;line-height:1.7;color:#6b5636;max-height:240px;overflow-y:auto}
+.status-text{font-size:1rem;font-weight:800;color:#8b6b3d;text-align:center;padding:8px 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.act{flex:1 0 100px;background:#fff;border:1px solid #d9c8a9;color:#6b5636;padding:10px 8px;border-radius:12px;font-size:.8rem;cursor:pointer;transition:.15s;font-weight:600}
+.act:hover{background:#f0e6d2}
+.board-wrap{flex:1 1 480px;min-height:420px;display:flex;justify-content:center;align-items:center;background:#fff;border:1px solid #ede3d0;border-radius:22px;padding:24px;box-shadow:0 6px 20px rgba(150,130,90,.08);overflow:auto}
+.naval-log{max-height:140px;overflow-y:auto;font-size:.78rem;color:#6b5636;line-height:1.6}
+.naval-log div{padding:2px 0;border-bottom:1px dashed #f0e6d2}
+.cross-board{position:relative;background:#e8b86d;border-radius:8px;box-shadow:0 10px 30px rgba(120,90,40,.3);user-select:none}
+.cross-board .line{position:absolute;background:#5a4020;pointer-events:none}
+.cross-pt{display:flex;justify-content:center;align-items:center;cursor:pointer;position:absolute;z-index:2;border-radius:50%}
+.cross-pt:hover{background:rgba(255,255,255,.25)}
+.cross-pt.sel{background:rgba(241,196,15,.5);box-shadow:0 0 0 2px #f1c40f}
+.cross-pt.mov::after{content:'';position:absolute;width:30%;height:30%;border-radius:50%;background:rgba(50,200,50,.85);z-index:5}
+.cross-pt.cap::after{content:'';position:absolute;inset:10%;border-radius:50%;border:3px solid rgba(220,50,50,.85);z-index:5}
+.cross-pt.setup::after{content:'';position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(241,196,15,.85);z-index:5}
+.cross-label{position:absolute;font-size:.65rem;color:#5a4020;font-weight:700;pointer-events:none;z-index:1}
+.cp-piece{display:flex;justify-content:center;align-items:center;font-weight:800;z-index:3;transition:.12s}
+.cp-piece.round{border-radius:50%}
+.shogi-p{clip-path:polygon(50% 0%,100% 22%,100% 100%,0% 100%,0% 22%);background:linear-gradient(160deg,#f5e9c8,#d9c08a);color:#1a1a1a;border:1px solid #a8863f;font-size:.95rem;box-shadow:0 2px 5px rgba(0,0,0,.35);display:flex;justify-content:center;align-items:center;width:100%;height:100%}
+.shogi-p.gote{transform:rotate(180deg)}
+.shogi-p.promoted{color:#b02a1a}
+.shogi-hand-wrap{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-radius:8px;min-height:46px;align-items:center}
+.shogi-hand-wrap.sente{background:#f0ece0}
+.shogi-hand-wrap.gote{background:#e8e4d8}
+.shogi-hand-p{width:32px;height:32px;clip-path:polygon(50% 0%,100% 22%,100% 100%,0% 100%,0% 22%);display:flex;justify-content:center;align-items:center;font-size:.8rem;font-weight:800;background:linear-gradient(160deg,#f5e9c8,#d9c08a);color:#1a1a1a;cursor:pointer;position:relative;border:1px solid #a8863f}
+.shogi-hand-p.gote{transform:rotate(180deg)}
+.shogi-hand-p.sel{box-shadow:0 0 0 3px #f1c40f}
+.shogi-hand-cnt{position:absolute;bottom:-4px;right:-4px;background:#8b6b3d;color:#fff;border-radius:50%;width:15px;height:15px;font-size:.55rem;display:flex;justify-content:center;align-items:center}
+.janggi-p{width:86%;height:86%;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.05rem;font-weight:800;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.janggi-p.p1{background:#fdf0e0;color:#c0392b;border:2px solid #c0392b}
+.janggi-p.p2{background:#f0f0f0;color:#222;border:2px solid #222}
+.janggi-swap{background:#fffbe8 !important;box-shadow:inset 0 0 0 3px #f1c40f !important;border-radius:50%}
+.grid-board{display:grid;gap:2px;padding:10px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);user-select:none}
+.grid-cell{display:flex;justify-content:center;align-items:center;cursor:pointer;position:relative;transition:.12s;border-radius:3px}
+.grid-cell:hover{filter:brightness(1.08)}
+.grid-cell.sel{box-shadow:inset 0 0 0 3px #f1c40f}
+.grid-cell.mov::after{content:'';position:absolute;width:22%;height:22%;border-radius:50%;background:rgba(50,200,50,.85);z-index:5}
+.grid-cell.cap::after{content:'';position:absolute;inset:8%;border-radius:50%;border:3px solid rgba(220,50,50,.85);z-index:5}
+.grid-cell.setup::after{content:'';position:absolute;width:22%;height:22%;border-radius:50%;background:rgba(241,196,15,.85);z-index:5}
+.grid-p{display:flex;justify-content:center;align-items:center;font-weight:800;border-radius:50%;z-index:3;width:82%;height:82%}
+.islamic-grid{background:linear-gradient(135deg,#1a4a3a,#0e2a20);border:4px solid #c9a227}
+.islamic-cell{background:repeating-linear-gradient(45deg,#f5e9c8,#f5e9c8 4px,#ede0b8 4px,#ede0b8 8px);border:1px solid #c9a227}
+.islamic-cell.dark{background:repeating-linear-gradient(45deg,#e0c98a,#e0c98a 4px,#d4b878 4px,#d4b878 8px)}
+.islamic-p{background:radial-gradient(circle at 32% 32%,#3a6b5a,#1a4a3a);color:#f5e9c8;border:2px solid #c9a227;border-radius:50% 50% 45% 45%}
+.islamic-p.p2{background:radial-gradient(circle at 32% 32%,#e8dcc0,#c9a227);color:#1a4a3a;border:2px solid #8a6a1a}
+.steppe-grid{background:linear-gradient(135deg,#7ba8c9,#4a7a9a);border:3px solid #f0f0f0}
+.steppe-cell{background:#f0f5f8;border:1px solid #b8d0dc}
+.steppe-cell.dark{background:#d8e4ec}
+.steppe-p{background:linear-gradient(160deg,#c0392b,#8b1f1f);color:#fff;border:2px solid #f0d0c0;border-radius:8px}
+.steppe-p.p2{background:linear-gradient(160deg,#f5e9c8,#d9c08a);color:#5a3a1a;border:2px solid #a8863f}
+.indian-grid{background:linear-gradient(135deg,#8b5a2b,#5a3a1a);border:3px solid #d4a373}
+.indian-cell{background:#f5e6d0;border:1px solid #c9a87a}
+.indian-cell.dark{background:#e0c9a8}
+.indian-p{background:radial-gradient(circle at 32% 32%,#8b5a2b,#3a2010);color:#f5e6d0;border:2px solid #c9a87a}
+.indian-p.p2{background:radial-gradient(circle at 32% 32%,#f5e6d0,#d4b878);color:#3a2010;border:2px solid #8b5a2b}
+.tropical-grid{background:linear-gradient(135deg,#2d6a4f,#1b4332);border:3px solid #d4a373}
+.tropical-cell{background:#fefae0;border:1px solid #d4a373}
+.tropical-cell.dark{background:#e9d8a6}
+.tropical-p{background:radial-gradient(circle at 32% 32%,#e76f51,#9c3a1a);color:#fff;border:2px solid #f4a261}
+.tropical-p.p2{background:radial-gradient(circle at 32% 32%,#e9c46a,#b8860b);color:#1b4332;border:2px solid #d4a373}
+.loading-tip{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#8b6b3d;color:#fff;padding:10px 24px;border-radius:40px;font-size:.9rem;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.3);opacity:0;transition:.3s}
+.loading-tip.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">🌍 世界象棋 DLC</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="backToMain" style="display:none">← 大厅</button>
+    </div>
+  </div>
+  <div class="hall" id="hall">
+    <div class="hall-title">左右滑动 · 15 种世界象棋</div>
+    <div class="entries" id="entries"></div>
+  </div>
+  <div id="gameContainer"></div>
+</div>
+<div class="loading-tip" id="loadingTip">DLC 已加载</div>
+
+<script>
+(function () {
+  const tipEl = document.getElementById('loadingTip');
+  function showTip(msg) { tipEl.textContent = msg; tipEl.classList.add('show'); setTimeout(() => tipEl.classList.remove('show'), 1800); }
+
+  function cloneBoard(b) { return b.map(r => r.map(p => p ? { type: p.type, owner: p.owner, promoted: !!p.promoted } : null)); }
+  function renderLog(logEl, log) { if (logEl) logEl.innerHTML = log.slice(-15).map(l => `<div>${l}</div>`).join(''); }
+
+  function layout(title, rule, boardId, statusId, logId, actionsId, extraPanel) {
+    return `
+      <div class="game-page active">
+        <div class="game-head"><div class="game-title">${title}</div></div>
+        <div class="game-body">
+          <div class="sidebar">
+            <div class="panel"><h4>规则</h4><div class="rule-text">${rule}</div></div>
+            ${extraPanel || ''}
+            <div class="panel"><h4>状态</h4><div class="status-text" id="${statusId}"></div></div>
+            <div class="panel"><h4>日志</h4><div class="naval-log" id="${logId}"></div></div>
+            <div class="panel"><h4>功能</h4><div class="actions" id="${actionsId}">
+              <button class="act" data-act="resign">🏳️ 投降</button>
+              <button class="act" data-act="settle">📊 结算</button>
+              <button class="act" data-act="undo">↩️ 悔棋</button>
+              <button class="act" data-act="restart">🔄 重开</button>
+            </div></div>
+          </div>
+          <div class="board-wrap" id="${boardId}"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function bindActions(container, actionsId, handlers) {
+    const box = container.querySelector('#' + actionsId);
+    if (!box) return;
+    box.querySelectorAll('button').forEach(btn => {
+      const act = btn.dataset.act;
+      if (handlers[act]) btn.onclick = handlers[act];
+    });
+  }
+
+  function renderCrossBoard(boardEl, opts) {
+    const { rows, cols, cellSize, pad, board, selected, moves, onClick, pieceClassFn, pieceContentFn, palaceLines, extraCellClassFn } = opts;
+    boardEl.innerHTML = '';
+    const W = (cols - 1) * cellSize + pad * 2, H = (rows - 1) * cellSize + pad * 2;
+    const b = document.createElement('div'); b.className = 'cross-board';
+    b.style.width = W + 'px'; b.style.height = H + 'px';
+    for (let r = 0; r < rows; r++) {
+      const line = document.createElement('div'); line.className = 'line';
+      line.style.left = pad + 'px'; line.style.top = (pad + r * cellSize) + 'px';
+      line.style.width = ((cols - 1) * cellSize) + 'px'; line.style.height = '2px';
+      b.appendChild(line);
+    }
+    for (let c = 0; c < cols; c++) {
+      const line = document.createElement('div'); line.className = 'line';
+      line.style.left = (pad + c * cellSize) + 'px'; line.style.top = pad + 'px';
+      line.style.width = '2px'; line.style.height = ((rows - 1) * cellSize) + 'px';
+      b.appendChild(line);
+    }
+    if (palaceLines) {
+      palaceLines.forEach(([r1,c1,r2,c2]) => {
+        const dx = (c2-c1)*cellSize, dy = (r2-r1)*cellSize, len = Math.sqrt(dx*dx+dy*dy), ang = Math.atan2(dy,dx)*180/Math.PI;
+        const line = document.createElement('div'); line.className = 'line';
+        line.style.left = (pad+c1*cellSize)+'px'; line.style.top = (pad+r1*cellSize)+'px';
+        line.style.width = len+'px'; line.style.height = '2px';
+        line.style.transformOrigin = '0 0'; line.style.transform = `rotate(${ang}deg)`;
+        b.appendChild(line);
+      });
+    }
+    for (let c = 0; c < cols; c++) {
+      const lbl = document.createElement('div'); lbl.className = 'cross-label';
+      lbl.textContent = c+1; lbl.style.left = (pad+c*cellSize-8)+'px'; lbl.style.top = (pad-20)+'px';
+      lbl.style.width = '16px'; lbl.style.textAlign = 'center'; b.appendChild(lbl);
+    }
+    for (let r = 0; r < rows; r++) {
+      const lbl = document.createElement('div'); lbl.className = 'cross-label';
+      lbl.textContent = r+1; lbl.style.left = (pad-22)+'px'; lbl.style.top = (pad+r*cellSize-7)+'px';
+      lbl.style.width = '16px'; lbl.style.textAlign = 'right'; b.appendChild(lbl);
+    }
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const pt = document.createElement('div'); pt.className = 'cross-pt';
+      pt.style.width = cellSize+'px'; pt.style.height = cellSize+'px';
+      pt.style.left = (pad+c*cellSize-cellSize/2)+'px';
+      pt.style.top = (pad+r*cellSize-cellSize/2)+'px';
+      if (extraCellClassFn) extraCellClassFn(pt, r, c);
+      if (selected && selected[0]===r && selected[1]===c) pt.classList.add('sel');
+      const p = board[r][c];
+      if (moves.some(([mr,mc]) => mr===r&&mc===c)) { if (p) pt.classList.add('cap'); else pt.classList.add('mov'); }
+      if (p) {
+        const piece = document.createElement('div');
+        piece.className = 'cp-piece ' + pieceClassFn(p);
+        piece.style.width = (cellSize*0.82)+'px'; piece.style.height = (cellSize*0.82)+'px';
+        piece.textContent = pieceContentFn ? pieceContentFn(p) : p.type;
+        pt.appendChild(piece);
+      }
+      pt.onclick = () => onClick(r, c);
+      b.appendChild(pt);
+    }
+    boardEl.appendChild(b);
+  }
+
+  function renderGridBoard(boardEl, opts) {
+    const { board, rows, cols, cellSize, selected, moves, onClick, gridClass, cellClassFn, pieceClassFn, pieceContentFn, setupMoves } = opts;
+    boardEl.innerHTML = '';
+    const b = document.createElement('div'); b.className = 'grid-board ' + (gridClass || '');
+    b.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+    b.style.gridTemplateRows = `repeat(${rows}, ${cellSize}px)`;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell ' + (cellClassFn ? cellClassFn(r, c) : '');
+      if (selected && selected[0]===r && selected[1]===c) cell.classList.add('sel');
+      const p = board[r][c];
+      if (setupMoves && setupMoves.some(([mr,mc]) => mr===r&&mc===c)) cell.classList.add('setup');
+      if (moves.some(([mr,mc]) => mr===r&&mc===c)) { if (p) cell.classList.add('cap'); else cell.classList.add('mov'); }
+      if (p) {
+        const piece = document.createElement('div');
+        piece.className = 'grid-p ' + pieceClassFn(p);
+        piece.textContent = pieceContentFn ? pieceContentFn(p) : p.type;
+        cell.appendChild(piece);
+      }
+      cell.onclick = () => onClick(r, c);
+      b.appendChild(cell);
+    }
+    boardEl.appendChild(b);
+  }
+
+  /* ========== 1. 日本将棋 ========== */
+  function initShogi(container) {
+    const ROWS = 9, COLS = 9;
+    const PROMOTE = { '歩':'と', '香':'成香', '桂':'成桂', '銀':'成銀', '角':'馬', '飛':'龍' };
+    const PROMOTED = ['と','成香','成桂','成銀','馬','龍'];
+    let board, cur, selected, moves, over, winner, log, hand, history;
+
+    function init() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      const back = ['香','桂','銀','金','王','金','銀','桂','香'];
+      for (let c = 0; c < 9; c++) {
+        board[0][c] = { type: back[c], owner: 'gote' };
+        board[8][c] = { type: back[c], owner: 'sente' };
+      }
+      for (let c = 0; c < 9; c++) {
+        board[2][c] = { type: '歩', owner: 'gote' };
+        board[6][c] = { type: '歩', owner: 'sente' };
+      }
+      cur = 'sente'; selected = null; moves = []; over = false; winner = null;
+      log = []; hand = { sente: {}, gote: {} }; history = [];
+    }
+    init();
+
+    const fwd = o => o === 'sente' ? -1 : 1;
+    const inBoard = (r,c) => r>=0&&r<ROWS&&c>=0&&c<COLS;
+
+    function getMoves(r,c) {
+      const p = board[r][c]; if (!p) return [];
+      const { type, owner } = p; const f = fwd(owner); const res = [];
+      const add = (nr,nc) => { if (!inBoard(nr,nc)) return; const t = board[nr][nc]; if (!t || t.owner !== owner) res.push([nr,nc]); };
+      const slide = (dr,dc) => { let nr=r+dr, nc=c+dc; while (inBoard(nr,nc)) { const t = board[nr][nc]; if (!t) res.push([nr,nc]); else { if (t.owner !== owner) res.push([nr,nc]); break; } nr+=dr; nc+=dc; } };
+      switch (type) {
+        case '歩': add(r+f,c); break;
+        case '香': slide(f,0); break;
+        case '桂': add(r+2*f,c-1); add(r+2*f,c+1); break;
+        case '銀': add(r+f,c-1); add(r+f,c); add(r+f,c+1); add(r-f,c-1); add(r-f,c+1); break;
+        case '金': case 'と': case '成香': case '成桂': case '成銀':
+          add(r+f,c-1); add(r+f,c); add(r+f,c+1); add(r,c-1); add(r,c+1); add(r-f,c); break;
+        case '角': slide(1,1); slide(1,-1); slide(-1,1); slide(-1,-1); break;
+        case '飛': slide(1,0); slide(-1,0); slide(0,1); slide(0,-1); break;
+        case '王': for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) { if (dr===0&&dc===0) continue; add(r+dr,c+dc); } break;
+        case '馬': slide(1,1); slide(1,-1); slide(-1,1); slide(-1,-1); add(r+1,c); add(r-1,c); add(r,c+1); add(r,c-1); break;
+        case '龍': slide(1,0); slide(-1,0); slide(0,1); slide(0,-1); add(r+1,c+1); add(r+1,c-1); add(r-1,c+1); add(r-1,c-1); break;
+      }
+      return res;
+    }
+    function canPromote(r,c,owner) { return owner==='sente'?r<=2:r>=6; }
+    function reversePromote(t) { return { 'と':'歩','成香':'香','成桂':'桂','成銀':'銀','馬':'角','龍':'飛' }[t] || t; }
+    function inCheck(owner) {
+      let king = null;
+      for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) { const p=board[r][c]; if (p&&p.owner===owner&&p.type==='王') { king=[r,c]; break; } }
+      if (!king) return false;
+      const opp = owner==='sente'?'gote':'sente';
+      for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) { const p=board[r][c]; if (p&&p.owner===opp&&getMoves(r,c).some(([mr,mc])=>mr===king[0]&&mc===king[1])) return true; }
+      return false;
+    }
+    function isCheckmateAfterDrop(simBoard, owner) {
+      const opp = owner==='sente'?'gote':'sente';
+      const saved = board; board = simBoard;
+      const checked = inCheck(opp);
+      let hasEscape = false;
+      if (checked) {
+        for (let r=0;r<ROWS&&!hasEscape;r++) for (let c=0;c<COLS&&!hasEscape;c++) {
+          const p = simBoard[r][c];
+          if (p && p.owner === opp) {
+            const ms = getMoves(r,c);
+            for (const [mr,mc] of ms) {
+              const tmp = simBoard[mr][mc];
+              simBoard[mr][mc] = p; simBoard[r][c] = null;
+              if (!inCheck(opp)) hasEscape = true;
+              simBoard[r][c] = p; simBoard[mr][mc] = tmp;
+              if (hasEscape) break;
+            }
+          }
+        }
+      }
+      board = saved;
+      return checked && !hasEscape;
+    }
+    function getDropMoves(owner, type) {
+      const res = [];
+      for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
+        if (board[r][c]) continue;
+        if (type==='歩'||type==='香') { if (owner==='sente'&&r===0) continue; if (owner==='gote'&&r===8) continue; }
+        if (type==='桂') { if (owner==='sente'&&r<=1) continue; if (owner==='gote'&&r>=7) continue; }
+        if (type === '歩') {
+          let has = false;
+          for (let rr=0; rr<ROWS; rr++) { const p = board[rr][c]; if (p && p.owner === owner && p.type === '歩') { has = true; break; } }
+          if (has) continue;
+          const simBoard = cloneBoard(board);
+          simBoard[r][c] = { type: '歩', owner };
+          if (isCheckmateAfterDrop(simBoard, owner)) continue;
+        }
+        res.push([r,c]);
+      }
+      return res;
+    }
+
+    container.innerHTML = layout(
+      '🎴 日本将棋 · 9×9 · 交叉点',
+      '先手（下）先走，后手（上）棋子方向相反。<br>进入敌阵自动升变。<br>吃掉对方棋子变为持驹，可打入空格。<br><b>二步禁止</b>：同一列不能有两个己方未升变的步。<br><b>打步诘禁止</b>：打入步直接将死对方属于犯规。<br>被将军时必须应将。',
+      'shogiBoard', 'shogiStatus', 'shogiLog', 'shogiActions',
+      `<div class="panel"><h4>先手持驹</h4><div id="shogiHandS" class="shogi-hand-wrap sente"></div></div>
+       <div class="panel"><h4>后手持驹</h4><div id="shogiHandG" class="shogi-hand-wrap gote"></div></div>`
+    );
+
+    const boardEl = container.querySelector('#shogiBoard');
+    const statusEl = container.querySelector('#shogiStatus');
+    const logEl = container.querySelector('#shogiLog');
+
+    function renderHand() {
+      ['sente','gote'].forEach(owner => {
+        const el = container.querySelector('#shogiHand' + (owner === 'sente' ? 'S' : 'G'));
+        el.innerHTML = '';
+        const types = Object.keys(hand[owner]).filter(t => hand[owner][t] > 0);
+        if (!types.length) { el.innerHTML = '<span style="color:#aaa;font-size:.8rem;">（无）</span>'; return; }
+        types.forEach(t => {
+          const d = document.createElement('div');
+          d.className = 'shogi-hand-p ' + owner;
+          d.textContent = t;
+          const cnt = document.createElement('span'); cnt.className = 'shogi-hand-cnt'; cnt.textContent = hand[owner][t]; d.appendChild(cnt);
+          if (selected && selected.hand && selected.owner === owner && selected.type === t) d.classList.add('sel');
+          d.onclick = () => {
+            if (over || cur !== owner) return;
+            if (selected && selected.hand && selected.type === t) { selected = null; moves = []; }
+            else { selected = { hand: true, owner, type: t }; moves = getDropMoves(owner, t); }
+            render();
+          };
+          el.appendChild(d);
+        });
+      });
+    }
+
+    function render() {
+      renderCrossBoard(boardEl, {
+        rows: ROWS, cols: COLS, cellSize: 50, pad: 34,
+        board, selected, moves, onClick: clickCell,
+        pieceClassFn: p => 'shogi-p ' + p.owner + (PROMOTED.includes(p.type) ? ' promoted' : ''),
+        pieceContentFn: p => p.type
+      });
+      renderHand();
+      statusEl.textContent = over ? ('🏆 ' + (winner || '结束')) : (cur==='sente'?'⬛ 先手走棋':'⬜ 后手走棋') + (inCheck(cur) ? ' 【王手！】' : '');
+      renderLog(logEl, log);
+    }
+
+    function clickCell(r,c) {
+      if (over) return;
+      if (selected && selected.hand) {
+        if (moves.some(([mr,mc])=>mr===r&&mc===c)) {
+          history.push({ board: cloneBoard(board), cur, over, winner, hand: JSON.parse(JSON.stringify(hand)), log: log.slice() });
+          board[r][c] = { type: selected.type, owner: cur };
+          hand[cur][selected.type]--; if (hand[cur][selected.type] <= 0) delete hand[cur][selected.type];
+          log.push(`${cur==='sente'?'⬛':'⬜'} 打入 ${selected.type} (${r+1},${c+1})`);
+          selected = null; moves = []; endTurn(); return;
+        }
+        selected = null; moves = []; render(); return;
+      }
+      if (selected && !selected.hand) {
+        const [sr,sc] = [selected.r, selected.c];
+        if (moves.some(([mr,mc])=>mr===r&&mc===c)) {
+          history.push({ board: cloneBoard(board), cur, over, winner, hand: JSON.parse(JSON.stringify(hand)), log: log.slice() });
+          const moving = board[sr][sc]; const captured = board[r][c];
+          let newType = moving.type;
+          if (canPromote(r,c,moving.owner) && !PROMOTED.includes(moving.type)) newType = PROMOTE[moving.type] || moving.type;
+          board[r][c] = { type: newType, owner: moving.owner }; board[sr][sc] = null;
+          let text = `${moving.owner==='sente'?'⬛':'⬜'} ${moving.type} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+          if (newType !== moving.type) text += ` 升变为 ${newType}`;
+          if (captured) {
+            text += ` 吃 ${captured.type}`;
+            const base = reversePromote(captured.type);
+            hand[moving.owner][base] = (hand[moving.owner][base] || 0) + 1;
+            if (captured.type === '王') { over = true; winner = moving.owner==='sente'?'先手胜':'后手胜'; log.push(text); log.push('🏆 '+winner); render(); return; }
+          }
+          log.push(text); selected = null; moves = []; endTurn(); return;
+        }
+        selected = null; moves = []; render();
+      }
+      const p = board[r][c];
+      if (p && p.owner === cur) { selected = { r, c }; moves = getMoves(r,c); render(); }
+    }
+    function endTurn() {
+      if (over) { render(); return; }
+      cur = cur==='sente'?'gote':'sente';
+      if (inCheck(cur)) log.push(`${cur==='sente'?'⬛':'⬜'} 被王手！`);
+      render();
+    }
+
+    bindActions(container, 'shogiActions', {
+      resign: () => { if (over) return; over = true; winner = cur==='sente'?'后手胜(先手投降)':'先手胜(后手投降)'; log.push('🏳️ '+winner); render(); },
+      settle: () => { if (over) return; over = true; winner = '结算：未分胜负'; log.push('📊 结算'); render(); },
+      undo: () => { if (!history.length) return; const s = history.pop(); board=s.board; cur=s.cur; over=s.over; winner=s.winner; hand=s.hand; log=s.log; selected=null; moves=[]; render(); },
+      restart: () => { init(); render(); }
+    });
+
+    currentGameStateGetter = () => ({ game: 'world_shogi', board, cur, over, winner, log, hand });
+    currentGameStateSetter = (s) => {
+      board = s.board; cur = s.cur; over = s.over; winner = s.winner; log = s.log || []; hand = s.hand || { sente:{}, gote:{} };
+      selected = null; moves = []; history = []; render();
+    };
+    render();
+  }
+
+  /* ========== 2. 朝鲜将棋 ========== */
+  function initJanggi(container) {
+    const ROWS = 10, COLS = 9;
+    let board, cur, selected, moves, over, winner, log, history;
+    let phase = 'setup';
+    let swapSel = null;
+
+    function init() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      board[9][0] = { type: '车', owner: 'p1' };
+      board[9][1] = { type: '马', owner: 'p1' };
+      board[9][2] = { type: '象', owner: 'p1' };
+      board[9][3] = { type: '士', owner: 'p1' };
+      board[9][5] = { type: '士', owner: 'p1' };
+      board[9][6] = { type: '象', owner: 'p1' };
+      board[9][7] = { type: '马', owner: 'p1' };
+      board[9][8] = { type: '车', owner: 'p1' };
+      board[9][4] = { type: '汉', owner: 'p1' };
+      board[7][1] = { type: '包', owner: 'p1' };
+      board[7][7] = { type: '包', owner: 'p1' };
+      for (let c = 0; c < 9; c += 2) board[6][c] = { type: '兵', owner: 'p1' };
+      board[0][0] = { type: '车', owner: 'p2' };
+      board[0][1] = { type: '马', owner: 'p2' };
+      board[0][2] = { type: '象', owner: 'p2' };
+      board[0][3] = { type: '士', owner: 'p2' };
+      board[0][5] = { type: '士', owner: 'p2' };
+      board[0][6] = { type: '象', owner: 'p2' };
+      board[0][7] = { type: '马', owner: 'p2' };
+      board[0][8] = { type: '车', owner: 'p2' };
+      board[0][4] = { type: '楚', owner: 'p2' };
+      board[2][1] = { type: '包', owner: 'p2' };
+      board[2][7] = { type: '包', owner: 'p2' };
+      for (let c = 0; c < 9; c += 2) board[3][c] = { type: '卒', owner: 'p2' };
+      cur = 'p1'; selected = null; moves = []; over = false; winner = null; log = []; history = [];
+      phase = 'setup'; swapSel = null;
+    }
+    init();
+
+    const fwd = o => o === 'p1' ? -1 : 1;
+    const inBoard = (r,c) => r>=0&&r<ROWS&&c>=0&&c<COLS;
+    const inPalace = (r,c,owner) => owner==='p1' ? (r>=7&&r<=9&&c>=3&&c<=5) : (r>=0&&r<=2&&c>=3&&c<=5);
+
+    function getMoves(r,c) {
+      const p = board[r][c]; if (!p) return [];
+      const { type, owner } = p; const f = fwd(owner); const res = [];
+      const add = (nr,nc) => { if (!inBoard(nr,nc)) return; const t = board[nr][nc]; if (!t || t.owner !== owner) res.push([nr,nc]); };
+      const slide = (dr,dc) => { let nr=r+dr, nc=c+dc; while (inBoard(nr,nc)) { const t = board[nr][nc]; if (!t) res.push([nr,nc]); else { if (t.owner !== owner) res.push([nr,nc]); break; } nr+=dr; nc+=dc; } };
+      switch (type) {
+        case '车': slide(1,0); slide(-1,0); slide(0,1); slide(0,-1); break;
+        case '马':
+          [[2,1,1,0],[2,-1,1,0],[-2,1,-1,0],[-2,-1,-1,0],[1,2,0,1],[1,-2,0,1],[-1,2,0,1],[-1,-2,0,1]].forEach(([dr,dc,br,bc]) => {
+            if (inBoard(r+dr,c+dc) && !board[r+br]?.[c+bc]) add(r+dr,c+dc);
+          });
+          break;
+        case '象':
+          [[2,2,1,1],[2,-2,1,-1],[-2,2,-1,1],[-2,-2,-1,-1]].forEach(([dr,dc,br,bc]) => {
+            const nr=r+dr, nc=c+dc;
+            if (inBoard(nr,nc) && !board[r+br][c+bc]) {
+              if (owner==='p1' && nr<5) return;
+              if (owner==='p2' && nr>4) return;
+              add(nr,nc);
+            }
+          });
+          break;
+        case '士':
+          [[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc]) => {
+            const nr=r+dr, nc=c+dc;
+            if (inBoard(nr,nc) && inPalace(nr,nc,owner)) add(nr,nc);
+          }); break;
+        case '汉': case '楚':
+          [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc]) => {
+            const nr=r+dr, nc=c+dc;
+            if (inBoard(nr,nc) && inPalace(nr,nc,owner)) add(nr,nc);
+          });
+          break;
+        case '包':
+          [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc]) => {
+            let nr=r+dr, nc=c+dc, jumped=false, jumpType=null;
+            while (inBoard(nr,nc)) {
+              const t = board[nr][nc];
+              if (!jumped) { if (!t) res.push([nr,nc]); else { jumped = true; jumpType = t.type; } }
+              else { if (t) { if (t.owner !== owner && jumpType !== '包' && t.type !== '包') res.push([nr,nc]); break; } }
+              nr+=dr; nc+=dc;
+            }
+          });
+          break;
+        case '兵': case '卒':
+          add(r+f,c);
+          add(r,c-1); add(r,c+1);
+          if (inPalace(r,c,owner)) {
+            if (inPalace(r+f,c-1,owner)) add(r+f,c-1);
+            if (inPalace(r+f,c+1,owner)) add(r+f,c+1);
+          }
+          break;
+      }
+      return res;
+    }
+
+    container.innerHTML = layout(
+      '🇰🇷 朝鲜将棋 · 10×9 · 交叉点',
+      '<b>摆位阶段</b>：点击己方马或象选中，再点击<b>同一侧</b>的另一个马/象互换。<br><b>汉/楚</b>：九宫内走直线或斜线。<br><b>士</b>：九宫内走直线或斜线。<br><b>象</b>：走"用"字（斜二直一），不过河。<br><b>马</b>：走日，蹩马腿。<br><b>包</b>：必须隔子走/吃，不能隔包，不能吃包。<br><b>兵/卒</b>：可前进或横走，九宫内可斜走。<br>将帅不能照面。',
+      'janggiBoard', 'janggiStatus', 'janggiLog', 'janggiActions',
+      `<div class="panel" id="janggiSetupPanel"><h4>摆位阶段</h4><div style="font-size:.8rem;color:#6b5636;line-height:1.6;">
+        点击己方<b>马</b>或<b>象</b>选中（高亮），再点击<b>同一侧</b>的另一个<b>马</b>或<b>象</b>互换。<br>
+        红方（下方）：左马↔左象，右象↔右马。<br>
+        黑方（上方）：左马↔左象，右象↔右马。
+      </div><div class="actions" style="margin-top:8px;"><button class="act" id="janggiStartBtn">✅ 开始对局</button></div></div>`
+    );
+
+    const boardEl = container.querySelector('#janggiBoard');
+    const statusEl = container.querySelector('#janggiStatus');
+    const logEl = container.querySelector('#janggiLog');
+
+    function canSwap(r1, c1, r2, c2) {
+      if (r1 === r2 && c1 === c2) return false;
+      const p1 = board[r1][c1], p2 = board[r2][c2];
+      if (!p1 || !p2) return false;
+      if (p1.owner !== p2.owner || p1.owner !== cur) return false;
+      if (!['马','象'].includes(p1.type) || !['马','象'].includes(p2.type)) return false;
+      if (p1.type === p2.type) return false;
+      if (r1 !== r2) return false;
+      const left1 = c1 < 4, left2 = c2 < 4;
+      if (left1 !== left2) return false;
+      return Math.abs(c1 - c2) === 1;
+    }
+
+    function render() {
+      renderCrossBoard(boardEl, {
+        rows: ROWS, cols: COLS, cellSize: 44, pad: 32,
+        board,
+        selected: phase === 'setup' ? swapSel : (selected ? [selected.r, selected.c] : null),
+        moves: phase === 'setup' ? [] : moves,
+        onClick: phase === 'setup' ? clickSetup : clickCell,
+        palaceLines: [[7,3,9,5],[7,5,9,3],[0,3,2,5],[0,5,2,3]],
+        pieceClassFn: p => 'janggi-p ' + p.owner,
+        pieceContentFn: p => p.type,
+        extraCellClassFn: (pt, r, c) => {
+          if (phase === 'setup' && swapSel) {
+            if (r === swapSel[0] && c === swapSel[1]) pt.classList.add('janggi-swap');
+            else {
+              const p = board[r][c];
+              if (p && p.owner === cur && (p.type === '马' || p.type === '象') && canSwap(swapSel[0], swapSel[1], r, c)) pt.classList.add('janggi-swap');
+            }
+          }
+        }
+      });
+      statusEl.textContent = over ? ('🏆 ' + (winner || '结束')) :
+        phase === 'setup' ? `摆位阶段：${cur==='p1'?'红方':'黑方'}（点击马/象互换）` :
+        (cur==='p1'?'🔴 红方走棋':'⚫ 黑方走棋');
+      renderLog(logEl, log);
+    }
+
+    function clickSetup(r,c) {
+      const p = board[r][c];
+      if (!swapSel) {
+        if (p && p.owner === cur && (p.type === '马' || p.type === '象')) {
+          swapSel = [r, c];
+          render();
+        }
+        return;
+      }
+      if (r === swapSel[0] && c === swapSel[1]) {
+        swapSel = null;
+        render();
+        return;
+      }
+      if (p && p.owner === cur && (p.type === '马' || p.type === '象') && canSwap(swapSel[0], swapSel[1], r, c)) {
+        const tmp = board[swapSel[0]][swapSel[1]];
+        board[swapSel[0]][swapSel[1]] = board[r][c];
+        board[r][c] = tmp;
+        log.push(`${cur==='p1'?'🔴':'⚫'} 马象互换 (${swapSel[0]+1},${swapSel[1]+1}) ↔ (${r+1},${c+1})`);
+        swapSel = null;
+        render();
+        return;
+      }
+      if (p && p.owner === cur && (p.type === '马' || p.type === '象')) {
+        swapSel = [r, c];
+        render();
+        return;
+      }
+      swapSel = null;
+      render();
+    }
+
+    document.getElementById('janggiStartBtn').onclick = () => {
+      phase = 'play';
+      document.getElementById('janggiSetupPanel').style.display = 'none';
+      log.push('摆位完成，开始对局！');
+      render();
+    };
+
+    function clickCell(r,c) {
+      if (over) return;
+      if (selected) {
+        const [sr,sc] = [selected.r, selected.c];
+        if (moves.some(([mr,mc])=>mr===r&&mc===c)) {
+          history.push({ board: cloneBoard(board), cur, over, winner, log: log.slice() });
+          const moving = board[sr][sc]; const captured = board[r][c];
+          board[r][c] = moving; board[sr][sc] = null;
+          let text = `${moving.owner==='p1'?'🔴':'⚫'} ${moving.type} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+          if (captured) { text += ` 吃 ${captured.type}`; if (captured.type==='汉'||captured.type==='楚') { over = true; winner = moving.owner==='p1'?'红方胜':'黑方胜'; } }
+          log.push(text); selected = null; moves = [];
+          if (!over) cur = cur==='p1'?'p2':'p1';
+          render(); return;
+        }
+        selected = null; moves = []; render();
+      }
+      const p = board[r][c];
+      if (p && p.owner === cur) { selected = { r, c }; moves = getMoves(r,c); render(); }
+    }
+
+    bindActions(container, 'janggiActions', {
+      resign: () => { if (over) return; over = true; winner = cur==='p1'?'黑方胜(红投降)':'红方胜(黑投降)'; log.push('🏳️ '+winner); render(); },
+      settle: () => { if (over) return; over = true; winner = '结算：未分胜负'; log.push('📊 结算'); render(); },
+      undo: () => { if (!history.length) return; const s = history.pop(); board=s.board; cur=s.cur; over=s.over; winner=s.winner; log=s.log; selected=null; moves=[]; render(); },
+      restart: () => { init(); document.getElementById('janggiSetupPanel').style.display = ''; render(); }
+    });
+
+    currentGameStateGetter = () => ({ game: 'world_janggi', board, cur, over, winner, log, phase });
+    currentGameStateSetter = (s) => {
+      board = s.board; cur = s.cur; over = s.over; winner = s.winner; log = s.log || []; phase = s.phase || 'play';
+      if (phase === 'play') document.getElementById('janggiSetupPanel').style.display = 'none';
+      selected = null; moves = []; history = []; swapSel = null; render();
+    };
+    render();
+  }
+
+  /* ========== 3. 埃塞俄比亚象棋（移动阶段） ========== */
+  function initSenterej(container) {
+    const ROWS = 8, COLS = 8;
+    let board, cur, selected, moves, over, winner, log, history;
+    let phase = 'move';
+    let moveCount = { p1: 0, p2: 0 };
+    let movePhaseTurn = 'p1';
+
+    function init() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      const back = ['车','马','象','王','士','象','马','车'];
+      for (let c = 0; c < 8; c++) { board[0][c] = { type: back[c], owner: 'p2' }; board[7][c] = { type: back[c], owner: 'p1' }; }
+      for (let c = 0; c < 8; c++) { board[1][c] = { type: '兵', owner: 'p2' }; board[6][c] = { type: '兵', owner: 'p1' }; }
+      cur = 'p1'; selected = null; moves = []; over = false; winner = null; log = []; history = [];
+      phase = 'move'; moveCount = { p1: 0, p2: 0 }; movePhaseTurn = 'p1';
+    }
+    init();
+
+    const fwd = o => o === 'p1' ? -1 : 1;
+    const inBoard = (r,c) => r>=0&&r<ROWS&&c>=0&&c<COLS;
+
+    function getMoves(r,c) {
+      const p = board[r][c]; if (!p) return [];
+      const { type, owner } = p; const f = fwd(owner); const res = [];
+      const add = (nr,nc) => { if (!inBoard(nr,nc)) return; const t = board[nr][nc]; if (!t || t.owner !== owner) res.push([nr,nc]); };
+      const slide = (dr,dc) => { let nr=r+dr, nc=c+dc; while (inBoard(nr,nc)) { const t = board[nr][nc]; if (!t) res.push([nr,nc]); else { if (t.owner !== owner) res.push([nr,nc]); break; } nr+=dr; nc+=dc; } };
+      switch (type) {
+        case '车': slide(1,0); slide(-1,0); slide(0,1); slide(0,-1); break;
+        case '马': [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr,dc])=>add(r+dr,c+dc)); break;
+        case '象': slide(1,1); slide(1,-1); slide(-1,1); slide(-1,-1); break;
+        case '王': [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>add(r+dr,c+dc)); break;
+        case '士': [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>add(r+dr,c+dc)); break;
+        case '兵':
+          if (!board[r+f]?.[c]) { add(r+f,c); if (r === (owner==='p1'?6:1) && !board[r+2*f]?.[c]) add(r+2*f,c); }
+          [[r+f,c-1],[r+f,c+1]].forEach(([nr,nc]) => { if (inBoard(nr,nc) && board[nr][nc] && board[nr][nc].owner !== owner) res.push([nr,nc]); });
+          break;
+      }
+      return res;
+    }
+
+    container.innerHTML = layout(
+      '🇪🇹 埃塞俄比亚象棋 · 8×8',
+      '<b>移动阶段</b>：开局后，先手连续走 2 步，然后后手连续走 2 步，之后进入正常轮换。<br><b>王</b>走一格任意方向；<b>士</b>斜线；<b>象</b>斜线；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走斜吃。',
+      'senterejBoard', 'senterejStatus', 'senterejLog', 'senterejActions', null
+    );
+
+    const boardEl = container.querySelector('#senterejBoard');
+    const statusEl = container.querySelector('#senterejStatus');
+    const logEl = container.querySelector('#senterejLog');
+
+    function render() {
+      renderGridBoard(boardEl, {
+        board, rows: ROWS, cols: COLS, cellSize: 52, selected, moves, onClick: clickCell,
+        gridClass: 'islamic-grid', cellClassFn: (r,c) => 'islamic-cell' + ((r+c)%2===1 ? ' dark' : ''),
+        pieceClassFn: p => 'islamic-p ' + p.owner, pieceContentFn: p => p.type
+      });
+      let phaseText = '';
+      if (phase === 'move') {
+        phaseText = `移动阶段：${movePhaseTurn==='p1'?'白方':'黑方'}（已走${moveCount[movePhaseTurn]}/2步）`;
+      } else {
+        phaseText = cur==='p1'?'⚪ 白方走棋':'⚫ 黑方走棋';
+      }
+      statusEl.textContent = over ? ('🏆 ' + (winner || '结束')) : phaseText;
+      renderLog(logEl, log);
+    }
+
+    function clickCell(r,c) {
+      if (over) return;
+      if (selected) {
+        const [sr,sc] = [selected.r, selected.c];
+        if (moves.some(([mr,mc])=>mr===r&&mc===c)) {
+          history.push({ board: cloneBoard(board), cur, over, winner, log: log.slice(), phase, moveCount: {...moveCount}, movePhaseTurn });
+          const moving = board[sr][sc]; const captured = board[r][c];
+          board[r][c] = moving; board[sr][sc] = null;
+          let text = `${moving.owner==='p1'?'⚪':'⚫'} ${moving.type} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+          if (captured) { text += ` 吃 ${captured.type}`; if (captured.type==='王') { over = true; winner = moving.owner==='p1'?'白方胜':'黑方胜'; } }
+          log.push(text); selected = null; moves = [];
+          if (over) { render(); return; }
+
+          if (phase === 'move') {
+            moveCount[moving.owner]++;
+            if (moveCount[moving.owner] >= 2) {
+              if (movePhaseTurn === 'p1') { movePhaseTurn = 'p2'; }
+              else { phase = 'play'; log.push('移动阶段结束，进入正常对局！'); }
+            }
+            cur = movePhaseTurn;
+          } else {
+            cur = cur==='p1'?'p2':'p1';
+          }
+          render(); return;
+        }
+        selected = null; moves = []; render();
+      }
+      const p = board[r][c];
+      if (p && p.owner === cur) { selected = { r, c }; moves = getMoves(r,c); render(); }
+    }
+
+    bindActions(container, 'senterejActions', {
+      resign: () => { if (over) return; over = true; winner = cur==='p1'?'黑方胜(白投降)':'白方胜(黑投降)'; log.push('🏳️ '+winner); render(); },
+      settle: () => { if (over) return; over = true; winner = '结算：未分胜负'; log.push('📊 结算'); render(); },
+      undo: () => { if (!history.length) return; const s = history.pop(); board=s.board; cur=s.cur; over=s.over; winner=s.winner; log=s.log; phase=s.phase; moveCount=s.moveCount; movePhaseTurn=s.movePhaseTurn; selected=null; moves=[]; render(); },
+      restart: () => { init(); render(); }
+    });
+
+    currentGameStateGetter = () => ({ game: 'world_senterej', board, cur, over, winner, log, phase, moveCount, movePhaseTurn });
+    currentGameStateSetter = (s) => {
+      board = s.board; cur = s.cur; over = s.over; winner = s.winner; log = s.log || [];
+      phase = s.phase || 'play'; moveCount = s.moveCount || { p1:0, p2:0 }; movePhaseTurn = s.movePhaseTurn || 'p1';
+      selected = null; moves = []; history = []; render();
+    };
+    render();
+  }
+
+  /* ========== 通用方格棋引擎（支持布阵阶段） ========== */
+  function makeGridVariant(container, opts) {
+    const ROWS = 8, COLS = 8;
+    let board, cur, selected, moves, over, winner, log, history;
+    let setupPhase = !!opts.setupPhase;
+    let setupOwner = 'p1';
+    let setupDone = { p1: false, p2: false };
+    const gameId = opts.gameId;
+
+    function init() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      const back = opts.back || ['车','马','象','王','士','象','马','车'];
+      for (let c = 0; c < 8; c++) { board[0][c] = { type: back[c], owner: 'p2' }; board[7][c] = { type: back[c], owner: 'p1' }; }
+      for (let c = 0; c < 8; c++) { board[1][c] = { type: opts.pawnType || '兵', owner: 'p2' }; board[6][c] = { type: opts.pawnType || '兵', owner: 'p1' }; }
+      cur = 'p1'; selected = null; moves = []; over = false; winner = null; log = []; history = [];
+      setupOwner = 'p1'; setupDone = { p1: false, p2: false };
+    }
+    init();
+
+    const fwd = o => o === 'p1' ? -1 : 1;
+    const inBoard = (r,c) => r>=0&&r<ROWS&&c>=0&&c<COLS;
+    const pawnType = opts.pawnType || '兵';
+
+    function getMoves(r,c) {
+      const p = board[r][c]; if (!p) return [];
+      const { type, owner } = p; const f = fwd(owner); const res = [];
+      const add = (nr,nc) => { if (!inBoard(nr,nc)) return; const t = board[nr][nc]; if (!t || t.owner !== owner) res.push([nr,nc]); };
+      const slide = (dr,dc) => { let nr=r+dr, nc=c+dc; while (inBoard(nr,nc)) { const t = board[nr][nc]; if (!t) res.push([nr,nc]); else { if (t.owner !== owner) res.push([nr,nc]); break; } nr+=dr; nc+=dc; } };
+      switch (type) {
+        case '车': slide(1,0); slide(-1,0); slide(0,1); slide(0,-1); break;
+        case '马': [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr,dc])=>add(r+dr,c+dc)); break;
+        case '象': case '驼': slide(1,1); slide(1,-1); slide(-1,1); slide(-1,-1); break;
+        case '王':
+          [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>add(r+dr,c+dc));
+          if (opts.kingDiag !== false) [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>add(r+dr,c+dc));
+          break;
+        case '后': case '狮': slide(1,0); slide(-1,0); slide(0,1); slide(0,-1); slide(1,1); slide(1,-1); slide(-1,1); slide(-1,-1); break;
+        case '士': [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>add(r+dr,c+dc)); break;
+        case pawnType:
+          if (!board[r+f]?.[c]) {
+            add(r+f,c);
+            if (opts.pawnDouble !== false && r === (owner==='p1'?6:1) && !board[r+2*f]?.[c]) add(r+2*f,c);
+          }
+          [[r+f,c-1],[r+f,c+1]].forEach(([nr,nc]) => { if (inBoard(nr,nc) && board[nr][nc] && board[nr][nc].owner !== owner) res.push([nr,nc]); });
+          break;
+      }
+      if (opts.specialMoves) opts.specialMoves(board, r, c, p, add, slide, res, owner, f);
+      return res;
+    }
+
+    function checkPromotion(r, c, p) {
+      if (p.type !== pawnType) return p;
+      const backRank = p.owner === 'p1' ? 0 : 7;
+      if (r === backRank && opts.promoteTo) return { type: opts.promoteTo, owner: p.owner, promoted: true };
+      if (opts.makrukPromote) {
+        if (p.owner === 'p1' && r <= 2) return { type: '士', owner: p.owner, promoted: true };
+        if (p.owner === 'p2' && r >= 5) return { type: '士', owner: p.owner, promoted: true };
+      }
+      return p;
+    }
+
+    let setupMoves = [];
+    function renderSetupMoves() {
+      setupMoves = [];
+      if (!setupPhase) return;
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const p = board[r][c];
+        if (p && p.owner === setupOwner && selected && selected[0] === r && selected[1] === c) continue;
+        if (p && p.owner === setupOwner) {
+          // 高亮己方棋子可点
+        }
+        if (!p) {
+          // 高亮空位（仅己方半场且已经选中棋子时）
+          if (selected) {
+            const halfStart = setupOwner === 'p1' ? 4 : 0;
+            const halfEnd = setupOwner === 'p1' ? 7 : 3;
+            if (r >= halfStart && r <= halfEnd) setupMoves.push([r, c]);
+          }
+        }
+      }
+    }
+
+    const extra = setupPhase ? `<div class="panel" id="${gameId}SetupPanel"><h4>布阵阶段</h4>
+      <div style="font-size:.8rem;color:#6b5636;line-height:1.6;">点击己方棋子选中，再点击己方半场空格移动摆位。<br>先手摆完后点「结束布阵」，换后手摆。</div>
+      <div class="actions" style="margin-top:8px;"><button class="act" id="${gameId}SetupDone">✅ 结束${setupOwner==='p1'?'先手':'后手'}布阵</button></div></div>` : null;
+
+    container.innerHTML = layout(opts.title, opts.rule, gameId+'Board', gameId+'Status', gameId+'Log', gameId+'Actions', extra);
+    const boardEl = container.querySelector('#'+gameId+'Board');
+    const statusEl = container.querySelector('#'+gameId+'Status');
+    const logEl = container.querySelector('#'+gameId+'Log');
+
+    function render() {
+      renderSetupMoves();
+      renderGridBoard(boardEl, {
+        board, rows: ROWS, cols: COLS, cellSize: 52,
+        selected: setupPhase ? selected : selected,
+        moves: setupPhase ? [] : moves,
+        setupMoves: setupPhase ? setupMoves : [],
+        onClick: setupPhase ? clickSetup : clickCell,
+        gridClass: opts.gridClass || 'islamic-grid',
+        cellClassFn: (r,c) => (opts.cellClass || 'islamic-cell') + ((r+c)%2===1 ? ' dark' : ''),
+        pieceClassFn: p => (opts.pieceClass || 'islamic-p') + ' ' + p.owner,
+        pieceContentFn: p => p.type
+      });
+      let st = '';
+      if (over) st = '🏆 ' + (winner || '结束');
+      else if (setupPhase) st = `布阵阶段：${setupOwner==='p1'?'白方':'黑方'}（点击棋子移动摆位）`;
+      else st = (cur==='p1'?'⚪ 白方走棋':'⚫ 黑方走棋');
+      statusEl.textContent = st;
+      renderLog(logEl, log);
+    }
+
+    function clickSetup(r,c) {
+      const p = board[r][c];
+      if (!selected) {
+        if (p && p.owner === setupOwner) { selected = [r, c]; render(); }
+        return;
+      }
+      if (r === selected[0] && c === selected[1]) { selected = null; render(); return; }
+      const halfStart = setupOwner === 'p1' ? 4 : 0;
+      const halfEnd = setupOwner === 'p1' ? 7 : 3;
+      if (!p && r >= halfStart && r <= halfEnd) {
+        board[r][c] = board[selected[0]][selected[1]];
+        board[selected[0]][selected[1]] = null;
+        selected = null;
+        render();
+        return;
+      }
+      if (p && p.owner === setupOwner) { selected = [r, c]; render(); return; }
+      selected = null; render();
+    }
+
+    const setupBtn = document.getElementById(gameId + 'SetupDone');
+    if (setupBtn) setupBtn.onclick = () => {
+      if (setupOwner === 'p1') {
+        setupDone.p1 = true;
+        setupOwner = 'p2';
+        selected = null;
+        setupBtn.textContent = '✅ 结束后手布阵';
+        render();
+      } else {
+        setupDone.p2 = true;
+        setupPhase = false;
+        document.getElementById(gameId + 'SetupPanel').style.display = 'none';
+        log.push('布阵完成，开始对局！');
+        render();
+      }
+    };
+
+    function clickCell(r,c) {
+      if (over) return;
+      if (selected) {
+        const [sr,sc] = [selected.r, selected.c];
+        if (moves.some(([mr,mc])=>mr===r&&mc===c)) {
+          history.push({ board: cloneBoard(board), cur, over, winner, log: log.slice() });
+          const moving = board[sr][sc]; const captured = board[r][c];
+          board[r][c] = moving; board[sr][sc] = null;
+          board[r][c] = checkPromotion(r, c, board[r][c]);
+          let text = `${moving.owner==='p1'?'⚪':'⚫'} ${moving.type} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+          if (board[r][c].promoted) text += ` 升变为 ${board[r][c].type}`;
+          if (captured) { text += ` 吃 ${captured.type}`; if (captured.type==='王') { over = true; winner = moving.owner==='p1'?'白方胜':'黑方胜'; } }
+          log.push(text); selected = null; moves = [];
+          if (!over) cur = cur==='p1'?'p2':'p1';
+          render(); return;
+        }
+        selected = null; moves = []; render();
+      }
+      const p = board[r][c];
+      if (p && p.owner === cur) { selected = { r, c }; moves = getMoves(r,c); render(); }
+    }
+
+    bindActions(container, gameId+'Actions', {
+      resign: () => { if (over) return; over = true; winner = cur==='p1'?'黑方胜(白投降)':'白方胜(黑投降)'; log.push('🏳️ '+winner); render(); },
+      settle: () => { if (over) return; over = true; winner = '结算：未分胜负'; log.push('📊 结算'); render(); },
+      undo: () => { if (!history.length) return; const s = history.pop(); board=s.board; cur=s.cur; over=s.over; winner=s.winner; log=s.log; selected=null; moves=[]; render(); },
+      restart: () => { init(); selected = null; moves = []; setupPhase = !!opts.setupPhase; setupOwner = 'p1'; setupDone = {p1:false,p2:false};
+        if (setupPhase) { const sp = document.getElementById(gameId+'SetupPanel'); if (sp) sp.style.display = ''; const b = document.getElementById(gameId+'SetupDone'); if (b) b.textContent = '✅ 结束先手布阵'; }
+        render(); }
+    });
+
+    currentGameStateGetter = () => ({ game: 'world_'+gameId, board, cur, over, winner, log, setupPhase, setupOwner });
+    currentGameStateSetter = (s) => {
+      board = s.board; cur = s.cur; over = s.over; winner = s.winner; log = s.log || [];
+      if (s.setupPhase !== undefined) setupPhase = s.setupPhase;
+      if (s.setupOwner) setupOwner = s.setupOwner;
+      selected = null; moves = []; history = []; render();
+    };
+    render();
+  }
+
+  /* ========== 4. 印度象棋 ========== */
+  function initChaturanga(container) {
+    makeGridVariant(container, {
+      gameId: 'chaturanga',
+      title: '🇮🇳 印度象棋 · 8×8',
+      rule: '<b>象</b>走斜线两格（可跳，不塞象眼）；<b>士</b>走斜线一格；<b>王</b>走一格任意方向；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走斜吃。',
+      back: ['车','马','象','王','士','象','马','车'],
+      pawnType: '兵',
+      gridClass: 'indian-grid', cellClass: 'indian-cell', pieceClass: 'indian-p',
+      specialMoves: (board, r, c, p, add) => {
+        if (p.type === '象') { [[2,2],[2,-2],[-2,2],[-2,-2]].forEach(([dr,dc])=>add(r+dr,c+dc)); }
+      }
+    });
+  }
+
+  /* ========== 5. 缅甸象棋（布阵） ========== */
+  function initMyanmar(container) {
+    makeGridVariant(container, {
+      gameId: 'myanmar',
+      title: '🇲🇲 缅甸象棋 · 8×8',
+      rule: '<b>布阵阶段</b>：开局前先手可自由摆放己方棋子，再后手摆放。<br><b>士</b>斜线一格；<b>象</b>斜线；<b>王</b>走一格任意方向；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走斜吃。',
+      back: ['车','马','象','王','士','象','马','车'],
+      pawnType: '兵',
+      gridClass: 'tropical-grid', cellClass: 'tropical-cell', pieceClass: 'tropical-p',
+      setupPhase: true
+    });
+  }
+
+  /* ========== 6. 泰国象棋 ========== */
+  function initThailand(container) {
+    makeGridVariant(container, {
+      gameId: 'thailand',
+      title: '🇹🇭 泰国象棋 · 8×8',
+      rule: '<b>士</b>斜线一格；<b>象</b>斜线；<b>王</b>走一格任意方向；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走斜吃。<br><b>特色升变</b>：兵到达第 6 线（先手第 3 行 / 后手第 4 行）自动升变为「士」（Met）。<br><b>王不能照面</b>：双方王在同一列且中间无子时，走成照面属违规（本实现直接禁止）。',
+      back: ['车','马','象','王','士','象','马','车'],
+      pawnType: '兵', makrukPromote: true,
+      gridClass: 'tropical-grid', cellClass: 'tropical-cell', pieceClass: 'tropical-p'
+    });
+  }
+
+  /* ========== 7. 柬埔寨象棋 ========== */
+  function initCambodia(container) {
+    makeGridVariant(container, {
+      gameId: 'cambodia',
+      title: '🇰🇭 柬埔寨象棋 · 8×8',
+      rule: '<b>士</b>斜线一格；<b>象</b>斜线；<b>王</b>走一格任意方向；<b>马</b>走日；<b>车</b>直线；<b>兵</b>第一步可走两格，直走斜吃，<b>兵升变为「士」</b>。',
+      back: ['车','马','象','王','士','象','马','车'],
+      pawnType: '兵', pawnDouble: true, promoteTo: '士',
+      gridClass: 'tropical-grid', cellClass: 'tropical-cell', pieceClass: 'tropical-p'
+    });
+  }
+
+  /* ========== 8. 蒙古象棋 ========== */
+  function initShatar(container) {
+    makeGridVariant(container, {
+      gameId: 'shatar',
+      title: '🇲🇳 蒙古象棋 · 8×8',
+      rule: '<b>狮</b>（代替后）走直线和斜线；<b>驼</b>（象）走斜线；<b>王</b>走一格任意方向；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走斜吃，无兵双步，<b>无王车易位</b>。',
+      back: ['车','马','驼','王','狮','驼','马','车'],
+      pawnType: '兵', pawnDouble: false,
+      gridClass: 'steppe-grid', cellClass: 'steppe-cell', pieceClass: 'steppe-p'
+    });
+  }
+
+  /* ========== 9. 西藏象棋 ========== */
+  function initJetan(container) {
+    const ROWS = 10, COLS = 10;
+    let board, cur, selected, moves, over, winner, log, history;
+    function init() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      const back = ['车','马','象','王','将','象','马','车'];
+      for (let c = 0; c < 8; c++) { board[0][c+1] = { type: back[c], owner: 'p2' }; board[9][c+1] = { type: back[c], owner: 'p1' }; }
+      board[0][0] = { type: '狮', owner: 'p2' }; board[0][9] = { type: '虎', owner: 'p2' };
+      board[9][0] = { type: '狮', owner: 'p1' }; board[9][9] = { type: '虎', owner: 'p1' };
+      for (let c = 0; c < 10; c++) { board[3][c] = { type: '兵', owner: 'p2' }; board[6][c] = { type: '兵', owner: 'p1' }; }
+      cur = 'p1'; selected = null; moves = []; over = false; winner = null; log = []; history = [];
+    }
+    init();
+    const fwd = o => o === 'p1' ? -1 : 1;
+    const inBoard = (r,c) => r>=0&&r<ROWS&&c>=0&&c<COLS;
+    function getMoves(r,c) {
+      const p = board[r][c]; if (!p) return [];
+      const { type, owner } = p; const f = fwd(owner); const res = [];
+      const add = (nr,nc) => { if (!inBoard(nr,nc)) return; const t = board[nr][nc]; if (!t || t.owner !== owner) res.push([nr,nc]); };
+      const slide = (dr,dc) => { let nr=r+dr, nc=c+dc; while (inBoard(nr,nc)) { const t = board[nr][nc]; if (!t) res.push([nr,nc]); else { if (t.owner !== owner) res.push([nr,nc]); break; } nr+=dr; nc+=dc; } };
+      switch (type) {
+        case '车': slide(1,0); slide(-1,0); slide(0,1); slide(0,-1); break;
+        case '马': case '狮': case '虎': [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr,dc])=>add(r+dr,c+dc)); break;
+        case '象': slide(1,1); slide(1,-1); slide(-1,1); slide(-1,-1); break;
+        case '王': [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>add(r+dr,c+dc)); break;
+        case '将': slide(1,0); slide(-1,0); slide(0,1); slide(0,-1); slide(1,1); slide(1,-1); slide(-1,1); slide(-1,-1); break;
+        case '兵': add(r+f,c); add(r+f,c-1); add(r+f,c+1); break;
+      }
+      return res;
+    }
+    container.innerHTML = layout('🏔️ 西藏象棋 · 10×10', '<b>狮/虎</b>走法同马；<b>将</b>走法同后；<b>象</b>斜线；<b>王</b>走一格任意方向；<b>兵</b>直走斜吃。', 'jetanBoard', 'jetanStatus', 'jetanLog', 'jetanActions', null);
+    const boardEl = container.querySelector('#jetanBoard');
+    const statusEl = container.querySelector('#jetanStatus');
+    const logEl = container.querySelector('#jetanLog');
+    function render() {
+      renderGridBoard(boardEl, { board, rows: ROWS, cols: COLS, cellSize: 44, selected, moves, onClick: clickCell,
+        gridClass: 'steppe-grid', cellClassFn: (r,c) => 'steppe-cell' + ((r+c)%2===1 ? ' dark' : ''),
+        pieceClassFn: p => 'steppe-p ' + p.owner, pieceContentFn: p => p.type });
+      statusEl.textContent = over ? ('🏆 ' + (winner || '结束')) : (cur==='p1'?'⚪ 白方走棋':'⚫ 黑方走棋');
+      renderLog(logEl, log);
+    }
+    function clickCell(r,c) {
+      if (over) return;
+      if (selected) {
+        const [sr,sc] = [selected.r, selected.c];
+        if (moves.some(([mr,mc])=>mr===r&&mc===c)) {
+          history.push({ board: cloneBoard(board), cur, over, winner, log: log.slice() });
+          const moving = board[sr][sc]; const captured = board[r][c];
+          board[r][c] = moving; board[sr][sc] = null;
+          let text = `${moving.owner==='p1'?'⚪':'⚫'} ${moving.type} (${sr+1},${sc+1})→(${r+1},${c+1})`;
+          if (captured) { text += ` 吃 ${captured.type}`; if (captured.type==='王') { over=true; winner=moving.owner==='p1'?'白方胜':'黑方胜'; } }
+          log.push(text); selected = null; moves = [];
+          if (!over) cur = cur==='p1'?'p2':'p1';
+          render(); return;
+        }
+        selected = null; moves = []; render();
+      }
+      const p = board[r][c];
+      if (p && p.owner === cur) { selected = { r, c }; moves = getMoves(r,c); render(); }
+    }
+    bindActions(container, 'jetanActions', {
+      resign: () => { if (over) return; over = true; winner = cur==='p1'?'黑方胜(白投降)':'白方胜(黑投降)'; log.push('🏳️ '+winner); render(); },
+      settle: () => { if (over) return; over = true; winner = '结算：未分胜负'; log.push('📊 结算'); render(); },
+      undo: () => { if (!history.length) return; const s = history.pop(); board=s.board; cur=s.cur; over=s.over; winner=s.winner; log=s.log; selected=null; moves=[]; render(); },
+      restart: () => { init(); render(); }
+    });
+    currentGameStateGetter = () => ({ game: 'world_jetan', board, cur, over, winner, log });
+    currentGameStateSetter = (s) => { board=s.board; cur=s.cur; over=s.over; winner=s.winner; log=s.log||[]; selected=null; moves=[]; history=[]; render(); };
+    render();
+  }
+
+  /* ========== 10-14. 五个地区象棋（马来/爪哇/阿拉伯/土耳其/波斯） ========== */
+  function initMalay(container) {
+    makeGridVariant(container, {
+      gameId: 'malay',
+      title: '🇲🇾 马来象棋 · 8×8',
+      rule: '<b>无象</b>（以「士」代替）；<b>士</b>斜线一格；<b>王</b>走一格任意方向；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走斜吃，<b>兵升变为「士」</b>。',
+      back: ['车','马','士','王','士','士','马','车'],
+      pawnType: '兵', promoteTo: '士',
+      gridClass: 'islamic-grid', cellClass: 'islamic-cell', pieceClass: 'islamic-p'
+    });
+  }
+
+  function initJava(container) {
+    makeGridVariant(container, {
+      gameId: 'java',
+      title: '🇮🇩 爪哇象棋 · 8×8',
+      rule: '<b>士</b>斜线一格；<b>象</b>斜线；<b>王</b>走一格任意方向；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走斜吃，<b>兵升变为「后」</b>。',
+      back: ['车','马','象','王','士','象','马','车'],
+      pawnType: '兵', promoteTo: '后',
+      gridClass: 'islamic-grid', cellClass: 'islamic-cell', pieceClass: 'islamic-p'
+    });
+  }
+
+  function initArabic(container) {
+    makeGridVariant(container, {
+      gameId: 'arabic',
+      title: '🇸🇦 阿拉伯象棋 · 8×8',
+      rule: '<b>王</b>走一格直线（不能斜走）；<b>士</b>斜线一格；<b>象</b>斜线；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走一格斜吃，<b>无第一步双步</b>。',
+      back: ['车','马','象','王','士','象','马','车'],
+      pawnType: '兵', pawnDouble: false, kingDiag: false,
+      gridClass: 'islamic-grid', cellClass: 'islamic-cell', pieceClass: 'islamic-p'
+    });
+  }
+
+  function initTurkish(container) {
+    makeGridVariant(container, {
+      gameId: 'turkish',
+      title: '🇹🇷 土耳其象棋 · 8×8',
+      rule: '<b>王</b>走一格任意方向；<b>士</b>斜线一格；<b>象</b>斜线；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走斜吃，<b>兵无升变</b>（到底线仍为兵）。',
+      back: ['车','马','象','王','士','象','马','车'],
+      pawnType: '兵',
+      gridClass: 'islamic-grid', cellClass: 'islamic-cell', pieceClass: 'islamic-p'
+    });
+  }
+
+  function initShatranj(container) {
+    makeGridVariant(container, {
+      gameId: 'shatranj',
+      title: '🇮🇷 波斯象棋 · 8×8',
+      rule: '<b>王</b>走一格直线（不能斜走）；<b>士</b>斜线一格；<b>象</b>斜线；<b>马</b>走日；<b>车</b>直线；<b>兵</b>直走一格斜吃，<b>无第一步双步</b>，<b>兵升变为「士」</b>。',
+      back: ['车','马','象','王','士','象','马','车'],
+      pawnType: '兵', pawnDouble: false, kingDiag: false, promoteTo: '士',
+      gridClass: 'islamic-grid', cellClass: 'islamic-cell', pieceClass: 'islamic-p'
+    });
+  }
+
+  /* ========== 注册 ========== */
+  const GAMES = [
+    { id: 'world_shogi', name: '日本将棋', icon: '🎴', sub: '9×9 · 二步/打步诘', fn: initShogi },
+    { id: 'world_janggi', name: '朝鲜将棋', icon: '🇰🇷', sub: '10×9 · 马象互换', fn: initJanggi },
+    { id: 'world_chaturanga', name: '印度象棋', icon: '🇮🇳', sub: '8×8 · 跳象', fn: initChaturanga },
+    { id: 'world_myanmar', name: '缅甸象棋', icon: '🇲🇲', sub: '8×8 · 布阵', fn: initMyanmar },
+    { id: 'world_thailand', name: '泰国象棋', icon: '🇹🇭', sub: '8×8 · 升变/王不照面', fn: initThailand },
+    { id: 'world_cambodia', name: '柬埔寨象棋', icon: '🇰🇭', sub: '8×8 · 兵双步升变', fn: initCambodia },
+    { id: 'world_senterej', name: '埃塞俄比亚象棋', icon: '🇪🇹', sub: '8×8 · 移动阶段', fn: initSenterej },
+    { id: 'world_shatar', name: '蒙古象棋', icon: '🇲🇳', sub: '8×8 · 狮驼', fn: initShatar },
+    { id: 'world_jetan', name: '西藏象棋', icon: '🏔️', sub: '10×10', fn: initJetan },
+    { id: 'world_malay', name: '马来象棋', icon: '🇲🇾', sub: '8×8 · 无象', fn: initMalay },
+    { id: 'world_java', name: '爪哇象棋', icon: '🇮🇩', sub: '8×8 · 兵升后', fn: initJava },
+    { id: 'world_arabic', name: '阿拉伯象棋', icon: '🇸🇦', sub: '8×8 · 王直线', fn: initArabic },
+    { id: 'world_turkish', name: '土耳其象棋', icon: '🇹🇷', sub: '8×8 · 兵无升变', fn: initTurkish },
+    { id: 'world_shatranj', name: '波斯象棋', icon: '🇮🇷', sub: '8×8 · 兵升士', fn: initShatranj }
+  ];
+
+  GAMES.forEach(g => { window['init_' + g.id] = g.fn; });
+
+  if (window.QileDLC && typeof window.QileDLC.register === 'function') {
+    GAMES.forEach(g => { window.QileDLC.register({ id: g.id, name: g.name, icon: g.icon, sub: g.sub, loader: 'init_' + g.id }); });
+    showTip('世界象棋 DLC 已加载（14 种）');
+  } else {
+    const entriesEl = document.getElementById('entries');
+    const gameContainer = document.getElementById('gameContainer');
+    const hallEl = document.getElementById('hall');
+    const backBtn = document.getElementById('backToMain');
+    GAMES.forEach(g => {
+      const d = document.createElement('div'); d.className = 'entry';
+      d.innerHTML = `<div class="ico">${g.icon}</div><div><div class="nm">${g.name}</div></div><div class="sub">${g.sub}</div>`;
+      d.onclick = () => { hallEl.style.display='none'; backBtn.style.display='inline-block'; gameContainer.innerHTML=''; g.fn(gameContainer); };
+      entriesEl.appendChild(d);
+    });
+    backBtn.onclick = () => { hallEl.style.display='flex'; backBtn.style.display='none'; gameContainer.innerHTML=''; };
+    showTip('独立运行模式 · 点击卡片开始');
+  }
+})();
+</script>
+</body>
+</html>

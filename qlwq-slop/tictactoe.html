@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>井字棋</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+body{background:#f7f5f0;color:#3a3226;display:flex;justify-content:center;padding:14px}
+.app{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.4rem;color:#6b5636;font-weight:800}
+.game-body{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.sidebar{flex:0 0 280px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:800px){.sidebar{flex:1 1 100%}}
+.panel{background:#fff;border:1px solid #ede3d0;border-radius:18px;padding:16px;box-shadow:0 4px 12px rgba(150,130,90,.06)}
+.panel h4{font-size:.8rem;color:#a89878;font-weight:700;margin-bottom:10px;letter-spacing:1.5px}
+.rule-text{font-size:.82rem;line-height:1.7;color:#6b5636}
+.status-text{font-size:1.1rem;font-weight:800;color:#8b6b3d;text-align:center;padding:8px 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.act{flex:1 0 100px;background:#fff;border:1px solid #d9c8a9;color:#6b5636;padding:10px 8px;border-radius:12px;font-size:.8rem;cursor:pointer;font-weight:600}
+.act:hover{background:#f0e6d2}
+.board-wrap{flex:1 1 480px;display:flex;justify-content:center;align-items:center;background:#fff;border:1px solid #ede3d0;border-radius:22px;padding:24px;box-shadow:0 6px 20px rgba(150,130,90,.08);overflow:auto}
+.naval-log{max-height:140px;overflow-y:auto;font-size:.78rem;color:#6b5636;line-height:1.6}
+.naval-log div{padding:2px 0;border-bottom:1px dashed #f0e6d2}
+.ttt-board{display:grid;grid-template-columns:repeat(3,96px);grid-template-rows:repeat(3,96px);gap:6px;background:#e8b86d;padding:14px;border-radius:14px;box-shadow:0 10px 30px rgba(120,90,40,.3)}
+.ttt-cell{background:#f7f3ec;border-radius:10px;display:flex;justify-content:center;align-items:center;cursor:pointer;font-size:3.6rem;font-weight:800;transition:.15s;border:2px solid #d9c8a9}
+.ttt-cell:hover{background:#fff}
+.ttt-cell.x{color:#d67b4a}.ttt-cell.o{color:#5b8bb0}
+.ttt-cell.win{background:#fef3c7;border-color:#f1c40f}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>❌ 井字棋 · 3×3 格子</h1>
+  <div class="game-body">
+    <div class="sidebar">
+      <div class="panel"><h4>规则</h4><div class="rule-text">X先O后，在格子里落子。横竖斜连成三子获胜。</div></div>
+      <div class="panel"><h4>状态</h4><div class="status-text" id="tttStatus">❌ X 走棋</div></div>
+      <div class="panel"><h4>日志</h4><div class="naval-log" id="tttLog"></div></div>
+      <div class="panel"><h4>功能</h4><div class="actions">
+        <button class="act" id="tttResign">🏳️ 投降</button>
+        <button class="act" id="tttSettle">📊 结算</button>
+        <button class="act" id="tttUndo">↩️ 悔棋</button>
+        <button class="act" id="tttRestart">🔄 重开</button>
+      </div></div>
+    </div>
+    <div class="board-wrap" id="tttWrap"></div>
+  </div>
+</div>
+<script>
+let board=Array.from({length:3},()=>Array(3).fill(null));
+let cur='X',over=false,winner=null,history=[],winLine=[],log=[];
+const wrap=document.getElementById('tttWrap'),statusEl=document.getElementById('tttStatus');
+function renderLog(){document.getElementById('tttLog').innerHTML=log.slice(-15).map(l=>'<div>'+l+'</div>').join('');}
+function render(){
+  const b=document.createElement('div');b.className='ttt-board';
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++){
+    const cell=document.createElement('div');cell.className='ttt-cell';
+    if(board[r][c]==='X'){cell.textContent='❌';cell.classList.add('x');}
+    else if(board[r][c]==='O'){cell.textContent='⭕';cell.classList.add('o');}
+    if(winLine.some(([wr,wc])=>wr===r&&wc===c))cell.classList.add('win');
+    cell.onclick=()=>place(r,c);b.appendChild(cell);
+  }
+  wrap.innerHTML='';wrap.appendChild(b);
+  statusEl.textContent=over?('🏆 '+(winner||'结束')):(cur==='X'?'❌ X 走棋':'⭕ O 走棋');
+  renderLog();
+}
+function place(r,c){
+  if(over||board[r][c])return;
+  history.push({board:board.map(x=>x.slice()),cur,over,winner,winLine:[...winLine],log:log.slice()});
+  board[r][c]=cur;
+  log.push(`${cur==='X'?'❌ X':'⭕ O'} (${r+1},${c+1})`);
+  const line=check();
+  if(line.length){over=true;winner=cur==='X'?'X 获胜':'O 获胜';winLine=line;log.push('🏆 '+winner);}
+  else if(board.flat().every(v=>v)){over=true;winner='平局';log.push('平局');}
+  else cur=cur==='X'?'O':'X';
+  render();
+}
+function check(){
+  for(let i=0;i<3;i++){
+    if(board[i][0]&&board[i][0]===board[i][1]&&board[i][1]===board[i][2])return[[i,0],[i,1],[i,2]];
+    if(board[0][i]&&board[0][i]===board[1][i]&&board[1][i]===board[2][i])return[[0,i],[1,i],[2,i]];
+  }
+  if(board[0][0]&&board[0][0]===board[1][1]&&board[1][1]===board[2][2])return[[0,0],[1,1],[2,2]];
+  if(board[0][2]&&board[0][2]===board[1][1]&&board[1][1]===board[2][0])return[[0,2],[1,1],[2,0]];
+  return[];
+}
+document.getElementById('tttResign').onclick=()=>{if(over)return;over=true;winner=cur==='X'?'O 胜(X投降)':'X 胜(O投降)';log.push('🏳️ '+winner);render();};
+document.getElementById('tttSettle').onclick=()=>{if(over)return;over=true;winner='结算：未分胜负';log.push('📊 结算');render();};
+document.getElementById('tttUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;winLine=s.winLine;log=s.log;render();};
+document.getElementById('tttRestart').onclick=()=>{board=Array.from({length:3},()=>Array(3).fill(null));cur='X';over=false;winner=null;winLine=[];history=[];log=[];render();};
+render();
+</script>
+</body>
+</html>

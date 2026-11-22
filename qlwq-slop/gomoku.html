@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>五子棋</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+body{background:#f7f5f0;color:#3a3226;display:flex;justify-content:center;padding:14px}
+.app{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.4rem;color:#6b5636;font-weight:800}
+.game-body{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.sidebar{flex:0 0 280px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:800px){.sidebar{flex:1 1 100%}}
+.panel{background:#fff;border:1px solid #ede3d0;border-radius:18px;padding:16px;box-shadow:0 4px 12px rgba(150,130,90,.06)}
+.panel h4{font-size:.8rem;color:#a89878;font-weight:700;margin-bottom:10px;letter-spacing:1.5px}
+.rule-text{font-size:.82rem;line-height:1.7;color:#6b5636}
+.status-text{font-size:1.1rem;font-weight:800;color:#8b6b3d;text-align:center;padding:8px 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.act{flex:1 0 100px;background:#fff;border:1px solid #d9c8a9;color:#6b5636;padding:10px 8px;border-radius:12px;font-size:.8rem;cursor:pointer;font-weight:600}
+.act:hover{background:#f0e6d2}
+.board-wrap{flex:1 1 480px;display:flex;justify-content:center;align-items:center;background:#fff;border:1px solid #ede3d0;border-radius:22px;padding:24px;box-shadow:0 6px 20px rgba(150,130,90,.08);overflow:auto}
+.naval-log{max-height:140px;overflow-y:auto;font-size:.78rem;color:#6b5636;line-height:1.6}
+.naval-log div{padding:2px 0;border-bottom:1px dashed #f0e6d2}
+.cross-board{position:relative;background:#e8b86d;border-radius:8px;box-shadow:0 10px 30px rgba(120,90,40,.3);user-select:none}
+.cross-board .line{position:absolute;background:#5a4020;pointer-events:none}
+.cross-point{display:flex;justify-content:center;align-items:center;cursor:pointer;position:absolute;z-index:2}
+.cross-point .stone{width:30px;height:30px;border-radius:50%;box-shadow:0 3px 6px rgba(0,0,0,.35);transition:transform .15s}
+.cross-point:hover .stone{transform:scale(1.05)}
+.stone.black{background:radial-gradient(circle at 32% 32%,#666,#0a0a0a)}
+.stone.white{background:radial-gradient(circle at 32% 32%,#fff,#c0c0c0)}
+.axis-label{position:absolute;font-size:.7rem;color:#5a4020;font-weight:700;z-index:1;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>⚫ 五子棋 · 15×15 交叉点</h1>
+  <div class="game-body">
+    <div class="sidebar">
+      <div class="panel"><h4>规则</h4><div class="rule-text">黑先白后，棋子落在交叉点上。横竖斜任意方向连成五子获胜。</div></div>
+      <div class="panel"><h4>状态</h4><div class="status-text" id="gmStatus">⚫ 黑方走棋</div></div>
+      <div class="panel"><h4>日志</h4><div class="naval-log" id="gmLog"></div></div>
+      <div class="panel"><h4>功能</h4><div class="actions">
+        <button class="act" id="gmResign">🏳️ 投降</button>
+        <button class="act" id="gmSettle">📊 结算</button>
+        <button class="act" id="gmUndo">↩️ 悔棋</button>
+        <button class="act" id="gmRestart">🔄 重开</button>
+      </div></div>
+    </div>
+    <div class="board-wrap" id="gmWrap"></div>
+  </div>
+</div>
+<script>
+const SIZE=15,CELL=36,PAD=36;
+let board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+let cur='black',over=false,winner=null,history=[],log=[];
+const wrap=document.getElementById('gmWrap'),statusEl=document.getElementById('gmStatus');
+
+function drawCrossLines(el,rows,cols,cellSize,pad){
+  const w=(cols-1)*cellSize,h=(rows-1)*cellSize;
+  for(let r=0;r<rows;r++){const line=document.createElement('div');line.className='line';line.style.left=pad+'px';line.style.top=(pad+r*cellSize)+'px';line.style.width=w+'px';line.style.height='2px';el.appendChild(line);}
+  for(let c=0;c<cols;c++){const line=document.createElement('div');line.className='line';line.style.left=(pad+c*cellSize)+'px';line.style.top=pad+'px';line.style.width='2px';line.style.height=h+'px';el.appendChild(line);}
+}
+function addAxisLabels(el,rows,cols,cellSize,pad){
+  for(let c=0;c<cols;c++){const lbl=document.createElement('div');lbl.className='axis-label';lbl.textContent=c+1;lbl.style.left=(pad+c*cellSize-10)+'px';lbl.style.top=(pad-22)+'px';lbl.style.width='20px';lbl.style.textAlign='center';el.appendChild(lbl);}
+  for(let r=0;r<rows;r++){const lbl=document.createElement('div');lbl.className='axis-label';lbl.textContent=r+1;lbl.style.left=(pad-24)+'px';lbl.style.top=(pad+r*cellSize-8)+'px';lbl.style.width='18px';lbl.style.textAlign='right';el.appendChild(lbl);}
+}
+function renderLog(){
+  document.getElementById('gmLog').innerHTML=log.slice(-15).map(l=>'<div>'+l+'</div>').join('');
+}
+function render(){
+  const b=document.createElement('div');b.className='cross-board';
+  b.style.width=((SIZE-1)*CELL+PAD*2)+'px';b.style.height=((SIZE-1)*CELL+PAD*2)+'px';b.style.position='relative';
+  drawCrossLines(b,SIZE,SIZE,CELL,PAD);addAxisLabels(b,SIZE,SIZE,CELL,PAD);
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    const pt=document.createElement('div');pt.className='cross-point';
+    pt.style.width=CELL+'px';pt.style.height=CELL+'px';
+    pt.style.left=(PAD+c*CELL-CELL/2)+'px';pt.style.top=(PAD+r*CELL-CELL/2)+'px';
+    const v=board[r][c];
+    if(v)pt.innerHTML=`<div class="stone ${v}"></div>`;
+    pt.onclick=()=>place(r,c);b.appendChild(pt);
+  }
+  wrap.innerHTML='';wrap.appendChild(b);
+  statusEl.textContent=over?('🏆 '+(winner||'结束')):(cur==='black'?'⚫ 黑方走棋':'⚪ 白方走棋');
+  renderLog();
+}
+function place(r,c){
+  if(over||board[r][c])return;
+  history.push({board:board.map(x=>x.slice()),cur,over,winner,log:log.slice()});
+  board[r][c]=cur;
+  log.push(`${cur==='black'?'⚫ 黑方':'⚪ 白方'} (${r+1},${c+1})`);
+  if(check(r,c,cur)){over=true;winner=cur==='black'?'黑方获胜':'白方获胜';log.push('🏆 '+winner);}
+  else cur=cur==='black'?'white':'black';
+  render();
+}
+function check(r,c,p){
+  const dirs=[[1,0],[0,1],[1,1],[1,-1]];
+  for(const[dx,dy]of dirs){let n=1;
+    for(let i=1;i<5;i++){const nr=r+dx*i,nc=c+dy*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==p)break;n++;}
+    for(let i=1;i<5;i++){const nr=r-dx*i,nc=c-dy*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==p)break;n++;}
+    if(n>=5)return true;
+  }return false;
+}
+document.getElementById('gmResign').onclick=()=>{if(over)return;over=true;winner=cur==='black'?'白方胜(黑投降)':'黑方胜(白投降)';log.push('🏳️ '+winner);render();};
+document.getElementById('gmSettle').onclick=()=>{if(over)return;over=true;winner='结算：未分胜负';log.push('📊 结算');render();};
+document.getElementById('gmUndo').onclick=()=>{if(!history.length)return;const s=history.pop();board=s.board;cur=s.cur;over=s.over;winner=s.winner;log=s.log;render();};
+document.getElementById('gmRestart').onclick=()=>{board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));cur='black';over=false;winner=null;history=[];log=[];render();};
+render();
+</script>
+</body>
+</html>

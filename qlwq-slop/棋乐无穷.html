@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>棋乐无穷 5.2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;}
+body{background:#f7f5f0;color:#3a3226;display:flex;justify-content:center;padding:14px;}
+
+.app{width:100%;max-width:1400px;display:flex;flex-direction:column;gap:18px;height:100%;}
+
+/* 顶栏（大厅可见） */
+.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;flex-shrink:0;}
+.logo{font-size:1.7rem;font-weight:800;color:#8b6b3d;letter-spacing:3px;}
+.top-actions{display:flex;gap:8px;margin-left:auto;}
+.btn{background:#fff;border:1px solid #d9c8a9;color:#6b5636;padding:8px 20px;border-radius:40px;cursor:pointer;font-size:.9rem;transition:.2s;box-shadow:0 2px 6px rgba(150,130,90,.1);}
+.btn:hover{background:#f0e6d2;}
+.btn.primary{background:#8b6b3d;color:#fff;border-color:#8b6b3d;}
+.btn.primary:hover{background:#7a5c2e;}
+
+/* 大厅 */
+.hall{display:flex;flex-direction:column;gap:14px;height:100%;overflow:hidden;}
+.hall-title{font-size:.9rem;color:#a89878;letter-spacing:1px;padding-left:6px;}
+.entries{display:flex;gap:18px;overflow-x:auto;padding:16px 6px 24px;scroll-snap-type:x mandatory;scrollbar-width:thin;flex:1;}
+.entries::-webkit-scrollbar{height:8px;}
+.entries::-webkit-scrollbar-thumb{background:#d9c8a9;border-radius:10px;}
+.entry{scroll-snap-align:start;flex:0 0 170px;height:480px;background:#fff;border-radius:24px;padding:24px 16px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:all .3s cubic-bezier(.2,.9,.3,1.2);opacity:.55;box-shadow:0 4px 12px rgba(150,130,90,.1);border:2px solid transparent;position:relative;overflow:hidden;text-align:center;}
+.entry:hover{opacity:.85;transform:translateY(-4px);}
+.entry.active{opacity:1;transform:translateY(-10px) scale(1.02);box-shadow:0 20px 40px rgba(120,95,55,.25),0 8px 16px rgba(120,95,55,.2);border-color:#c9b48e;}
+.entry.active::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.4),transparent);pointer-events:none;}
+.entry .ico{font-size:4rem;line-height:1;margin-top:40px;display:flex;justify-content:center;align-items:center;}
+.entry .nm{font-size:1.3rem;font-weight:800;color:#6b5636;}
+.entry .sub{font-size:.8rem;color:#a89878;background:#f7f3ec;padding:6px 14px;border-radius:20px;display:inline-block;margin-bottom:30px;}
+.icon-circle-x{width:48px;height:48px;border-radius:50%;background:#6b5636;position:relative;display:flex;justify-content:center;align-items:center;color:#f7f3ec;font-weight:800;font-size:1.6rem;box-shadow:0 3px 6px rgba(0,0,0,.2);}
+.icon-othello{width:48px;height:48px;border-radius:50%;background:linear-gradient(90deg,#111 50%,#fff 50%);border:2px solid #8b6b3d;box-shadow:0 3px 6px rgba(0,0,0,.2);}
+
+/* 游戏全屏视图 */
+.game-view{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10000;display:none;background:#f7f5f0;}
+.game-view.active{display:block;}
+.game-view iframe{width:100%;height:100%;border:none;display:block;}
+
+/* 游戏内悬浮控制 */
+.floating-controls{position:absolute;top:16px;right:16px;z-index:99999;display:flex;gap:8px;background:rgba(255,255,255,0.85);padding:6px;border-radius:12px;backdrop-filter:blur(4px);box-shadow:0 2px 10px rgba(0,0,0,.1);}
+.floating-controls .btn{padding:6px 12px;font-size:.8rem;box-shadow:none;background:#fff;border:1px solid #d9c8a9;color:#6b5636;border-radius:20px;cursor:pointer;transition:.2s;}
+.floating-controls .btn:hover{background:#f0e6d2;}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 顶栏（大厅可见） -->
+  <div class="topbar" id="topbar">
+    <div class="logo">🎲 棋乐无穷 5.2</div>
+    <div class="top-actions">
+      <button class="btn" id="bgmBtn">🎵 BGM 关</button>
+    </div>
+  </div>
+  
+  <!-- 大厅 -->
+  <div class="hall" id="hall">
+    <div class="hall-title">左右滑动 · 选择游戏</div>
+    <div class="entries" id="entries"></div>
+  </div>
+</div>
+
+<!-- 游戏全屏视图 -->
+<div class="game-view" id="gameView">
+  <div class="floating-controls">
+    <button class="btn" id="floatHomeBtn">← 返回大厅</button>
+    <button class="btn" id="floatBgmBtn">🎵 BGM 关</button>
+  </div>
+  <iframe id="gameFrame" title="游戏"></iframe>
+</div>
+
+<audio id="bgmAudio" src="忘川彼岸.mp3" loop></audio>
+
+<script>
+const GAME_LIST = [
+  {id:'gomoku',   name:'五子棋',    icon:'⚫', sub:'15×15 交叉点',        file:'gomoku.html'},
+  {id:'go',       name:'围棋',      icon:'⚪', sub:'吃子·劫争·天元',      file:'go.html'},
+  {id:'tictactoe',name:'井字棋',    icon:'❌', sub:'3×3 格子',            file:'tictactoe.html'},
+  {id:'checkers', name:'跳棋',      icon:'icon-circle-x', sub:'8×8 斜走连跳', file:'checkers.html'},
+  {id:'othello',  name:'黑白棋',    icon:'icon-othello', sub:'8×8 翻转',      file:'othello.html'},
+  {id:'ludo',     name:'飞行棋',    icon:'✈️', sub:'田字十字棋盘',        file:'ludo.html'},
+  {id:'animal',   name:'斗兽棋',    icon:'🦁', sub:'6×6 拆包对战',        file:'animal.html'},
+  {id:'xiangqi',  name:'象棋',      icon:'🀄', sub:'楚河汉界·将帅对脸',   file:'xiangqi.html'},
+  {id:'chess',    name:'国际象棋',  icon:'♟️', sub:'王车易位·吃过路兵',   file:'chess.html'},
+  {id:'naval',    name:'海战棋',    icon:'🚢', sub:'10×10 布阵对战',      file:'naval.html'},
+  {id:'air',      name:'空战棋',    icon:'🛩️', sub:'15×15 云朵空战',      file:'air.html'},
+  {id:'junqi',    name:'军棋',      icon:'🎖️', sub:'暗棋布阵·暗棋对战',   file:'junqi.html'},
+  {id:'backgammon',name:'双陆棋',   icon:'🎲', sub:'西洋双陆棋',          file:'backgammon.html'},
+  {id:'monopoly', name:'大富翁',    icon:'🏠', sub:'外60格·内20格·传送门', file:'monopoly.html'}
+];
+
+const bgmAudio = document.getElementById('bgmAudio');
+let bgmPlaying = false;
+let currentGame = null;
+const iframes = {}; // 缓存游戏 iframe
+
+function updateBgmBtns(text) {
+  document.getElementById('bgmBtn').textContent = text;
+  document.getElementById('floatBgmBtn').textContent = text;
+}
+
+document.getElementById('bgmBtn').onclick = document.getElementById('floatBgmBtn').onclick = function() {
+  if (bgmPlaying) { bgmAudio.pause(); updateBgmBtns('🎵 BGM 关'); bgmPlaying = false; }
+  else {
+    bgmAudio.play().then(() => { updateBgmBtns('🎵 BGM 开'); bgmPlaying = true; })
+      .catch(() => { updateBgmBtns('🎵 BGM 关'); bgmPlaying = false; });
+  }
+};
+
+function getRoute() { return location.hash.replace('#/', '').replace('#', '') || ''; }
+function goHome() { location.hash = ''; }
+function goGame(id) { location.hash = '/' + id; }
+window.addEventListener('hashchange', route);
+document.getElementById('floatHomeBtn').onclick = goHome;
+
+function route() {
+  const id = getRoute();
+  const hall = document.getElementById('hall');
+  const topbar = document.getElementById('topbar');
+  const gameView = document.getElementById('gameView');
+
+  if (!id || !GAME_LIST.find(g => g.id === id)) {
+    hall.style.display = 'flex';
+    topbar.style.display = 'flex';
+    gameView.classList.remove('active');
+    currentGame = null;
+    renderEntries();
+  } else {
+    hall.style.display = 'none';
+    topbar.style.display = 'none';
+    gameView.classList.add('active');
+    openGame(id);
+  }
+}
+
+function renderEntries() {
+  const box = document.getElementById('entries'); box.innerHTML = '';
+  GAME_LIST.forEach(g => {
+    const d = document.createElement('div');
+    d.className = 'entry' + (currentGame && currentGame.id === g.id ? ' active' : '');
+    d.dataset.id = g.id;
+    let iconHtml;
+    if (g.icon === 'icon-circle-x') iconHtml = '<div class="icon-circle-x">✕</div>';
+    else if (g.icon === 'icon-othello') iconHtml = '<div class="icon-othello"></div>';
+    else iconHtml = g.icon;
+    d.innerHTML = `<div class="ico">${iconHtml}</div><div><div class="nm">${g.name}</div></div><div class="sub">${g.sub}</div>`;
+    d.onclick = () => goGame(g.id);
+    box.appendChild(d);
+  });
+}
+
+function openGame(id) {
+  const g = GAME_LIST.find(x => x.id === id);
+  if (currentGame && currentGame.id === g.id) return;
+  currentGame = g;
+
+  const frame = document.getElementById('gameFrame');
+  if (!iframes[id]) {
+    iframes[id] = document.createElement('iframe');
+    iframes[id].src = g.file;
+    iframes[id].style.width = '100%';
+    iframes[id].style.height = '100%';
+    iframes[id].style.border = 'none';
+    iframes[id].style.display = 'block';
+  }
+
+  const gameView = document.getElementById('gameView');
+  const controls = gameView.querySelector('.floating-controls');
+  gameView.innerHTML = '';
+  gameView.appendChild(controls);
+  gameView.appendChild(iframes[id]);
+  renderEntries();
+}
+
+renderEntries();
+route();
+</script>
+</body>
+</html>
