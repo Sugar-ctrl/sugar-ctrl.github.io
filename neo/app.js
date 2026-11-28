@@ -509,7 +509,7 @@
   document.getElementById('saveBrowser').onclick = () => {
     const state = currentState();
     if (!state) {
-      alert(currentInstance ? '当前状态无法保存（如升变中）' : '当前没有正在进行的棋局');
+      alert(currentInstance ? '当前禁止保存（特殊状态/游戏不支持）' : '当前没有正在进行的棋局');
       return;
     }
     try {
