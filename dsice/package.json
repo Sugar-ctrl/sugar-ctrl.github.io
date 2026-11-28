@@ -1,0 +1,10 @@
+{
+  "name": "pixel-runner",
+  "version": "0.5.0",
+  "private": true,
+  "description": "A no-dependency pixel-art platformer tutorial where four desert guides teach controls, mechanisms and lore before a whale-maid heroine shifts a day-night cycle and escorts the last ice seed across moving platforms, jump pads and slopes.",
+  "scripts": {
+    "test": "node tests/run-all.js",
+    "serve": "python -m http.server 8123"
+  }
+}

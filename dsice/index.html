@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120c12">
+  <meta name="description" content="Pixel Runner — 一个无需构建工具的像素风 2D 平台跳跃游戏。跟随向导学习操控与机关，带着最后一枚冰种穿过烈阳遗迹。">
+  <title>Pixel Runner — 沙海最后一枚冰 · 新手教程</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23070b17'/%3E%3Cpath d='M6 2h4v2h2v2h2v4h-2v2h-2v2H6v-2H4v-2H2V6h2V4h2z' fill='%235eead4'/%3E%3Cpath d='M6 4h4v2h2v4h-2v2H6v-2H4V6h2z' fill='%23b8ffff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-state="title">
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <div class="pixel-grid" aria-hidden="true"></div>
+
+  <div class="shell" id="shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn square gear-btn" id="settingsBtn" type="button" aria-label="打开设置">
+          <svg class="gear-mark" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/>
+          </svg>
+        </button>
+        <div class="brand">
+        <svg class="logo-mark" viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges">
+          <path d="M6 1h4v2h2v2h2v4h-2v2h-2v2H6v-2H4v-2H2V5h2V3h2z" fill="#5eead4"/>
+          <path d="M6 3h4v2h2v4h-2v2H6v-2H4V5h2z" fill="#0b2f35"/>
+          <path d="M6 3h3v2H6zM4 5h2v2H4zM8 7h2v2H8z" fill="#b8ffff"/>
+        </svg>
+        <div class="brand-copy">
+          <div class="brand-name">PIXEL<span>RUNNER</span></div>
+          <div class="brand-sub">WEB PLATFORMER KIT</div>
+        </div>
+        </div>
+      </div>
+
+      <button class="sundial" id="timeBtn" type="button" aria-label="打开日晷微调时间" aria-expanded="false" aria-controls="clockPanel" disabled>
+        <span class="sundial-aura" aria-hidden="true"></span>
+        <svg class="sundial-svg" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="sundial-halo" cx="50" cy="50" r="47"></circle>
+          <circle class="sundial-rim" cx="50" cy="50" r="43"></circle>
+          <circle class="sundial-inner" cx="50" cy="50" r="29"></circle>
+          <g class="sundial-ticks">
+            <line x1="50" y1="8" x2="50" y2="14"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(30 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(60 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(90 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(120 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(150 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(180 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(210 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(240 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(270 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(300 50 50)"></line>
+            <line x1="50" y1="8" x2="50" y2="14" transform="rotate(330 50 50)"></line>
+          </g>
+          <path class="sundial-horizon" d="M17 63a35 35 0 0 0 66 0"></path>
+          <line class="sundial-hand" id="sundialHand" x1="50" y1="50" x2="50" y2="16"></line>
+          <circle class="sundial-orb" id="sundialOrb" cx="50" cy="16" r="4.2"></circle>
+          <circle class="sundial-pivot" cx="50" cy="50" r="2.8"></circle>
+        </svg>
+        <span class="sundial-readout">
+          <b id="timeLabel">12:00</b>
+          <i id="sundialPhase">NOON</i>
+        </span>
+      </button>
+
+      <div class="top-actions">
+        <div class="stage-chip"><i></i><span id="stageLabel">TUTORIAL 01</span></div>
+        <button class="icon-btn" id="muteBtn" type="button" aria-label="切换声音" aria-pressed="false">
+          <span class="sound-bars" aria-hidden="true"><b></b><b></b><b></b></span>
+          <span id="muteLabel">AUDIO ON</span>
+        </button>
+        <button class="icon-btn square" id="pauseBtn" type="button" aria-label="暂停游戏" disabled>
+          <span id="pauseGlyph">II</span>
+        </button>
+      </div>
+
+      <div class="clock-popover" id="clockPanel" hidden>
+        <div class="clock-head" id="clockDragHandle">
+          <span>24H CLOCK</span>
+          <button type="button" class="clock-close" id="clockCloseBtn" aria-label="关闭日晷">×</button>
+        </div>
+
+        <div class="clock-body">
+          <svg class="clock-dial" id="clockDial" viewBox="0 0 220 220" role="slider"
+               aria-label="拖动日晷微调时间，也可用左右方向键微调"
+               aria-valuemin="0" aria-valuemax="4" aria-valuenow="1" aria-valuetext="12:00，NOON" tabindex="0">
+            <circle class="clock-face" cx="110" cy="110" r="96"></circle>
+            <g id="clockTicks"></g>
+            <line class="clock-hand" id="clockHand" x1="110" y1="110" x2="110" y2="36"></line>
+            <circle class="clock-sun" id="clockSun" cx="110" cy="36" r="6"></circle>
+            <circle class="clock-pivot" cx="110" cy="110" r="3"></circle>
+          </svg>
+
+          <div class="clock-readout">
+            <strong id="clockTime">12:00</strong>
+            <span id="clockPhase">NOON</span>
+          </div>
+
+          <div class="clock-presets" aria-label="时间预设">
+            <button type="button" data-clock-preset="0">DAWN</button>
+            <button type="button" data-clock-preset="1">NOON</button>
+            <button type="button" data-clock-preset="2">DUSK</button>
+            <button type="button" data-clock-preset="3">NIGHT</button>
+          </div>
+          <p class="clock-hint">拖动标题移动 · 拖动右下角缩放 · 拖动太阳/月亮微调</p>
+        </div>
+        <span class="clock-resize" id="clockResize" aria-hidden="true"></span>
+      </div>
+    </header>
+
+    <main class="play-area">
+      <div class="screen-frame" id="screenFrame">
+        <div class="screen" id="screen">
+          <canvas id="game" width="1440" height="810" aria-label="Pixel Runner 游戏画面">你的浏览器需要支持 Canvas 才能运行游戏。</canvas>
+          <div class="screen-fx" aria-hidden="true"></div>
+
+          <div class="dialogue-layer" id="dialogue" hidden>
+            <div class="dialogue-card" role="dialog" aria-live="polite" aria-labelledby="dialogueName">
+              <div class="dialogue-head">
+                <span class="dialogue-seal" aria-hidden="true"></span>
+                <div class="dialogue-id">
+                  <strong id="dialogueName">SUNWARDEN / 守日人</strong>
+                  <small id="dialogueRole">GUIDE OF THE SANDS</small>
+                </div>
+                <span class="dialogue-count" id="dialogueCount">1 / 5</span>
+              </div>
+              <p class="dialogue-text" id="dialogueText"></p>
+              <div class="dialogue-foot">
+                <span class="dialogue-hint">E / ENTER / CLICK 继续 · 可边走边听</span>
+                <button class="dialogue-next" id="dialogueNext" type="button">
+                  <span>继续</span>
+                  <small>NEXT</small>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="overlay" id="overlay">
+            <section class="panel intro" id="titleCard" role="dialog" aria-labelledby="gameTitle">
+              <div class="panel-rule" aria-hidden="true"><i></i><i></i><i></i></div>
+              <p class="eyebrow">A TINY CANVAS ADVENTURE</p>
+              <h1 id="gameTitle">PIXEL <em>RUNNER</em></h1>
+              <p class="tagline">SANDS OF THE LAST ICE <span>//</span> 新手教程</p>
+
+              <div class="panel-actions">
+                <button class="pixel-button primary" id="startBtn" type="button">
+                  <span class="button-icon" aria-hidden="true">▶</span>
+                  <span class="button-copy"><b>开始游戏</b><small>START RUN</small></span>
+                  <span class="button-hint">SPACE / ENTER</span>
+                </button>
+              </div>
+              <p class="best-line" id="titleBest" hidden></p>
+            </section>
+
+            <section class="panel compact" id="pauseCard" role="dialog" aria-labelledby="pauseTitle" hidden>
+              <p class="eyebrow">TAKE A BREATH</p>
+              <h2 id="pauseTitle">暂停中</h2>
+              <p class="compact-copy">沙漠的时间先停在这里。</p>
+              <div class="panel-actions row">
+                <button class="pixel-button primary" id="resumeBtn" type="button">
+                  <span class="button-icon" aria-hidden="true">▶</span>
+                  <span class="button-copy"><b>继续</b><small>RESUME</small></span>
+                </button>
+                <button class="pixel-button ghost" id="restartBtn" type="button">
+                  <span class="button-copy"><b>重新开始</b><small>RESTART</small></span>
+                </button>
+              </div>
+              <p class="microcopy">按 ESC 或 P 继续</p>
+            </section>
+
+            <section class="panel compact complete" id="completeCard" role="dialog" aria-labelledby="completeTitle" hidden>
+              <p class="eyebrow">ICE DELIVERED</p>
+              <h2 id="completeTitle">冰块送达</h2>
+              <p class="compact-copy">祭坛的寒气接住了最后一块冰。</p>
+              <div class="stats">
+                <div class="stat"><span class="stat-label">ICE LEFT</span><strong id="clearIce">0%</strong></div>
+                <div class="stat"><span class="stat-label">TIME</span><strong id="clearTime">00:00</strong></div>
+                <div class="stat"><span class="stat-label">DEATHS</span><strong id="clearDeaths">0</strong></div>
+              </div>
+              <p class="shard-line" id="clearShards"></p>
+              <p class="best-line" id="clearBest"></p>
+              <p class="new-best" id="newBest" hidden>◆ BEST ICE ◆</p>
+              <div class="panel-actions row">
+                <button class="pixel-button primary" id="againBtn" type="button">
+                  <span class="button-icon" aria-hidden="true">↻</span>
+                  <span class="button-copy"><b>再跑一次</b><small>RUN AGAIN</small></span>
+                </button>
+                <button class="pixel-button ghost" id="titleBtn" type="button">
+                  <span class="button-copy"><b>返回标题</b><small>TITLE SCREEN</small></span>
+                </button>
+              </div>
+            </section>
+
+            <section class="panel compact fail" id="failCard" role="dialog" aria-labelledby="failTitle" hidden>
+              <p class="eyebrow" id="failEyebrow">ICE LOST</p>
+              <h2 id="failTitle">冰块融化了</h2>
+              <p class="compact-copy" id="failCopy">直射阳光会持续削减冰块。让高处的石块挡住阳光，或切换清晨与黄昏，把长影移到冰块上。</p>
+              <div class="stats">
+                <div class="stat"><span class="stat-label" id="failStatLabel">ICE LEFT</span><strong id="failStatValue">0%</strong></div>
+                <div class="stat"><span class="stat-label">TIME</span><strong id="failTime">00:00</strong></div>
+                <div class="stat"><span class="stat-label">DEATHS</span><strong id="failDeaths">0</strong></div>
+              </div>
+              <div class="panel-actions row">
+                <button class="pixel-button primary" id="failRetryBtn" type="button">
+                  <span class="button-icon" aria-hidden="true">↻</span>
+                  <span class="button-copy"><b>再试一次</b><small>TRY AGAIN</small></span>
+                </button>
+                <button class="pixel-button ghost" id="failTitleBtn" type="button">
+                  <span class="button-copy"><b>返回标题</b><small>TITLE SCREEN</small></span>
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <p class="sr-only" id="statusLive" aria-live="polite"></p>
+        </div>
+
+        <div class="touch-controls" id="touchControls" aria-label="触屏操作">
+          <span class="touch-label" aria-hidden="true">TOUCH<br>CONTROL</span>
+          <div class="touch-dpad">
+            <button class="touch-btn" type="button" data-action="left" aria-label="向左移动">◀<span>左</span></button>
+            <button class="touch-btn" type="button" data-action="right" aria-label="向右移动">▶<span>右</span></button>
+          </div>
+          <button class="touch-btn jump" type="button" data-action="jump" aria-label="跳跃">JUMP<span>跳跃</span></button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="underbar">
+      <div class="footer-left">
+        <span class="led" aria-hidden="true"></span>
+        <span class="desktop-hint"><kbd>WASD</kbd> 移动 <span class="dot-sep">·</span> <kbd>SPACE</kbd> 跳跃 <span class="dot-sep">·</span> 点击顶部时间拨动日晷 <span class="dot-sep">·</span> <kbd>T</kbd> 循环 <span class="dot-sep">·</span> <kbd>R</kbd> 重开</span>
+        <span class="touch-hint">触屏：左下移动 · 右下跳跃 · 点顶部时间拨动日晷</span>
+      </div>
+      <div class="footer-right">
+        <button class="zoom-chip" id="zoomChip" type="button" title="滚轮缩放画面；点击重置为 100%">ZOOM <span id="zoomValue">100%</span></button>
+        <span class="dot-sep">·</span>
+        <span id="fpsLabel">60 FPS</span>
+        <span class="dot-sep">·</span>
+        <span>BUILD 0.5.0</span>
+        <span class="dot-sep">·</span>
+        <span>F3 DEBUG</span>
+      </div>
+    </footer>
+  </div>
+
+  <div class="settings-modal" id="settingsModal" hidden>
+    <div class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <header class="settings-header">
+        <div>
+          <p class="eyebrow">CABINET CONFIG</p>
+          <h2 id="settingsTitle">设置</h2>
+        </div>
+        <button type="button" class="settings-close" id="settingsCloseBtn" aria-label="关闭设置">×</button>
+      </header>
+
+      <nav class="settings-tabs" aria-label="设置分类">
+        <button type="button" data-settings-tab="audio" class="is-active">音效</button>
+        <button type="button" data-settings-tab="controls">按键与指南</button>
+        <button type="button" data-settings-tab="dev">开发者</button>
+      </nav>
+
+      <div class="settings-body">
+        <section class="settings-panel" data-settings-panel="audio">
+          <h3 class="settings-heading">音效大小</h3>
+          <label class="setting-range">
+            <span>SFX VOLUME</span>
+            <output id="volumeValue">100%</output>
+            <input type="range" id="volumeRange" min="0" max="100" step="1" value="100">
+          </label>
+          <p class="settings-hint">调节所有跳跃、落地、时间切换和界面提示音的音量。</p>
+
+          <h3 class="settings-heading music-heading">音乐音量</h3>
+          <label class="setting-range">
+            <span>MUSIC VOLUME</span>
+            <output id="musicVolumeValue">55%</output>
+            <input type="range" id="musicVolumeRange" min="0" max="100" step="1" value="55">
+          </label>
+          <p class="settings-hint">原创沙漠氛围曲《SUNWARDEN'S DRIFT》· 无外部音频文件</p>
+
+          <div class="setting-row">
+            <div>
+              <strong>静音全部声音</strong>
+              <p>也可以按 M 或在顶部栏切换。</p>
+            </div>
+            <button type="button" class="settings-action" id="settingsMuteBtn">AUDIO ON</button>
+          </div>
+        </section>
+
+        <section class="settings-panel" data-settings-panel="controls" hidden>
+          <h3 class="settings-heading">按键绑定</h3>
+          <div class="bind-list" id="bindList"></div>
+          <div class="settings-actions-row">
+            <button type="button" class="settings-action" id="resetBindingsBtn">恢复默认按键</button>
+            <span class="settings-status" id="bindStatus" aria-live="polite"></span>
+          </div>
+
+          <h3 class="settings-heading guide-heading">操作指南</h3>
+          <ul class="guide-list" id="guideList"></ul>
+        </section>
+
+        <section class="settings-panel" data-settings-panel="dev" hidden>
+          <div class="dev-toggle">
+            <div>
+              <strong>开发者模式</strong>
+              <p>解锁角色、冰块、寒意和日晷的实时参数。关闭后会恢复默认参数。</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="devToggle">
+              <span></span>
+            </label>
+          </div>
+
+          <div class="dev-sliders" id="devSliders"></div>
+          <div class="settings-actions-row">
+            <button type="button" class="settings-action" id="devResetBtn">恢复默认参数</button>
+            <span class="settings-status" id="devStatus" aria-live="polite"></span>
+          </div>
+          <p class="settings-hint">参数会实时生效并自动保存。关闭开发者模式会停止使用自定义参数。</p>
+        </section>
+      </div>
+
+      <footer class="settings-footer">
+        <span>设置自动保存到本机浏览器</span>
+        <button type="button" class="settings-done" id="settingsDoneBtn">完成</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="error-panel" id="errorPanel" role="alert" hidden>
+    <div>
+      <strong>游戏遇到了一点问题</strong>
+      <pre id="errorText"></pre>
+    </div>
+    <button type="button" id="reloadBtn">重新载入</button>
+  </div>
+
+  <noscript><p class="noscript">请开启 JavaScript 后再进入游戏。</p></noscript>
+
+  <script src="js/core.js"></script>
+  <script src="js/character-art.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
